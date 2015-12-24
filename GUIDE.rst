@@ -52,7 +52,7 @@ Keeping everything required for creating a new environment in version control is
   ./application/
   ./etc/
 
-.. insight:: I have found heavy resistence to changing server software (such as the PHP or NGINX version) on manually managed servers. Upgrading these packages brings a host of new risks, including in the case of one PHP upgrade, changing from listening on a TCP port to socket. It is impossible to automatically provision without keeping things in version control, thus: we keep things in version control.
+.. insight:: I have found heavy resistance to changing server software (such as the PHP or NGINX version) on manually managed servers. Upgrading these packages brings a host of new risks, including in the case of one PHP upgrade, changing from listening on a TCP port to socket. It is impossible to automatically provision without keeping things in version control, thus: we keep things in version control.
 
 Creating a build pipeline
 -------------------------
@@ -73,7 +73,7 @@ Actually building the pipeline
 ``````````````````````````````
 I used grunt, phing and robo as task runners and not found them to be super superior to bash scripts. However, bash is a little too expressive - You can quickly come up with convoluted, nasty compliation scripts. Thus, we're going to try Make. I have never used it, but it seems simple enough. 
 
-There are a few things that need to be automated. First, the goal is for a single command deployment. So, we're going to stuhb that method. 
+There are a few things that need to be automated. First, the goal is for a single command deployment. So, we're going to stub that method. 
 
 .. Code::make
 
@@ -89,3 +89,14 @@ There are a few things that need to be automated. First, the goal is for a singl
     deploy: guard-ENVIRONMENT
     	echo "This is a stub method. It does nothing, yet"
  
+Environment
+'''''''''''
+We need somewhere to deploy the actual application to. You will need:
+  - A Google Cloud account
+  - A Google Cloud project (presumably with billing enabled)
+  - A Google Cloud service account
+
+I have previously set up the first two, but the details I'm using for the third are:
+
+
+

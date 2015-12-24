@@ -12,5 +12,18 @@ guard-%:
 deploy: guard-ENVIRONMENT
 	echo "This is a stub method. It does nothing, yet"
 
-infrastructure: guard-ENVIRONMENT
-	echo "Hello"
+infrastructure: guard-ENVIRONMENT guard-GOOGLE_CLOUD_PROJECT guard-GOOGLE_CLOUD_ZONE
+	gcloud -v >/dev/null 2>&1 ; \
+	if [ ! $$? -eq 0 ] ; then \
+	    echo "Please verify the gcloud command line tool is installed and working correctly"; \
+	fi
+
+	gcloud container clusters create \
+	    --project=$(GOOGLE_CLOUD_PROJECT) \
+	    --enable-cloud-logging \
+	    --machine-type=n1-standard-1 \
+	    --num-nodes=2 \
+	    --quiet \
+	    --wait \
+	    --zone=asia-east1-a \
+	    magento2-kubernetes
