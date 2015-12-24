@@ -38,15 +38,15 @@ Keeping everything required for creating a new environment in version control is
   ./.editorconfig
   ./.gitattributes
   ./.gitignore
-  # ./.scrutinizer.yml
+  ./.scrutinizer.yml
   ./.travis.yml
-  # ./CHANGELOG.rst
-  # ./CONDUCT.rst
-  # ./CONTRIBUTING.rst
-  # ./LICENSE.rst
-  # ./README.md
-  # ./composer.json
-  # ./phpunit.xml
+  ./CHANGELOG.rst
+  ./CONDUCT.rst
+  ./CONTRIBUTING.rst
+  ./LICENSE.rst
+  ./README.md
+  ./composer.json
+  ./phpunit.xml
 
   ./build/ 
   ./application/
