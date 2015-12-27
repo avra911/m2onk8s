@@ -9,15 +9,16 @@ guard-%:
 	    exit 1; \
 	fi
 
+guard-gcloud:
+	gcloud -v > /dev/null 2>&1 ; \
+	if [ ! $$? -eq 0 ]; then \
+	    echo "Please verify the gcloud command line tool is installed and in your $PATH"; \
+	fi
+
 deploy: guard-ENVIRONMENT
 	echo "This is a stub method. It does nothing, yet"
 
-infrastructure: guard-ENVIRONMENT guard-GOOGLE_CLOUD_PROJECT guard-GOOGLE_CLOUD_ZONE
-	gcloud -v >/dev/null 2>&1 ; \
-	if [ ! $$? -eq 0 ] ; then \
-	    echo "Please verify the gcloud command line tool is installed and working correctly"; \
-	fi
-
+create-infrastructure: guard-ENVIRONMENT guard-GOOGLE_CLOUD_PROJECT guard-GOOGLE_CLOUD_ZONE guard-gcloud
 	gcloud container clusters create \
 	    --project=$(GOOGLE_CLOUD_PROJECT) \
 	    --enable-cloud-logging \
@@ -25,5 +26,12 @@ infrastructure: guard-ENVIRONMENT guard-GOOGLE_CLOUD_PROJECT guard-GOOGLE_CLOUD_
 	    --num-nodes=2 \
 	    --quiet \
 	    --wait \
-	    --zone=asia-east1-a \
+	    --zone=$(GOOGLE_CLOUD_ZONE) \
+	    magento2-kubernetes
+
+destroy-infrastructure: guard-GOOGLE_CLOUD_PROJECT guard-GOOGLE_CLOUD_ZONE guard-gcloud
+	gcloud container clusters delete \
+	    --project=$(GOOGLE_CLOUD_PROJECT) \
+	    --quiet \
+	    --wait \
 	    magento2-kubernetes
