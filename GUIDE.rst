@@ -94,9 +94,54 @@ Environment
 We need somewhere to deploy the actual application to. You will need:
   - A Google Cloud account
   - A Google Cloud project (presumably with billing enabled)
-  - A Google Cloud service account
 
-I have previously set up the first two, but the details I'm using for the third are:
+Keeping with our goal of being able to recreate the entire application from information in the repo, we'll use make targets to create the cluster. Add the following targets to your "Makefile".
 
+.. Code::make
+    # Many targets require the use of the gcloud command line tool. Thus, we create a target dependency that checks if the gcloud tool exists. 
+    guard-gcloud:
+    	gcloud -v > /dev/null 2>&1 ; \
+    	if [ ! $$? -eq 0 ]; then \
+    	    echo "Please verify the gcloud command line tool is installed and in your $PATH"; \
+    	fi
+
+	  # Create the infrastructure 
+    create-infrastructure: guard-ENVIRONMENT guard-GOOGLE_CLOUD_PROJECT guard-GOOGLE_CLOUD_ZONE guard-gcloud
+    	gcloud container clusters create \
+    	    --project=$(GOOGLE_CLOUD_PROJECT) \
+    	    --enable-cloud-logging \
+    	    --machine-type=n1-standard-1 \
+    	    --num-nodes=2 \
+    	    --quiet \
+    	    --wait \
+    	    --zone=$(GOOGLE_CLOUD_ZONE) \
+    	    magento2-kubernetes
+
+Becuase we're going to make and destroy the infrastructure many times through this build process, we're also keeping its destruction command in the make file. This makes it easier not to leave orphan clusters running (and costing money) when we're finished experimenting.
+
+.. Code::make
+
+    # Destroy the infrastructure
+    destroy-infrastructure: guard-GOOGLE_CLOUD_PROJECT guard-GOOGLE_CLOUD_ZONE guard-gcloud
+    	gcloud container clusters delete \
+    	    --project=$(GOOGLE_CLOUD_PROJECT) \
+    	    --quiet \
+    	    --wait \
+    	    magento2-kubernetes
+
+As you might be able to tell, we're going to use environment variables to pass information specific to the application into the make file. This is not a good way to do it - You should be able to store and version control this information. However, given this is supposed to be a "template" of sorts, that's what we've elected to do. However, the targets now exist, and it's time to create the infrastructure:
+
+.. Code::bash
+
+    $ export ENVIRONMENT=production
+    $ export GOOGLE_CLOUD_PROJECT={your newly created project}
+    $ export GOOGLE_CLOUD_ZONE={the closest google cloud zone - In my case, asia-east1-a}
+    $ make create-infrastructure
+
+You're away! Now, let's get something to deploy onto this infrastructure. In the mean time, we can delete this cluster:
+
+.. Code::bash
+
+    $ make destroy-infrastructure
 
 
