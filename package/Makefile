@@ -1,4 +1,6 @@
-# Make script that builds and deploy the Magento files
+#Make script that builds and deploy the Magento files
+
+SHELL := /bin/bash
 
 # General method that checks for required environment variables. See http://stackoverflow.com/questions/4728810/makefile-variable-as-prerequisite
 guard-%:
@@ -15,9 +17,18 @@ guard-gcloud:
 	    echo "Please verify the gcloud command line tool is installed and in your $PATH"; \
 	fi
 
+guard-changes:
+	if [[ `git diff --shortstat 2> /dev/null | tail -n1` != "" ]]; then \
+	    echo "---- ERROR ----"; \
+            echo "There are unstaged changes present. Build unreliable"; \
+	    echo "---------------" \
+	    exit 1; \
+	fi
+
 deploy: guard-ENVIRONMENT
 	echo "This is a stub method. It does nothing, yet"
 
+# Infrastructure
 create-infrastructure: guard-ENVIRONMENT guard-GOOGLE_CLOUD_PROJECT guard-GOOGLE_CLOUD_ZONE guard-gcloud
 	gcloud container clusters create \
 	    --project=$(GOOGLE_CLOUD_PROJECT) \
