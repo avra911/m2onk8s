@@ -46,3 +46,18 @@ destroy-infrastructure: guard-GOOGLE_CLOUD_PROJECT guard-GOOGLE_CLOUD_ZONE guard
 	    --quiet \
 	    --wait \
 	    magento2-kubernetes
+
+create-pod: guard-change create-container-nginx create-container-php
+
+create-container-nginx:
+	mkdir build/docker/NGINX/tmp
+
+	# I dislike having to copy files into the same DIR as the dockerfile. Still, it's the only way I know how this can be done.
+	cp -r etc build/docker/NGINX/tmp/
+	docker build -t magento2-kubernetes/nginx:$(git rev-parse --short HEAD) build/docker/NGINX
+
+create-container-php:
+
+make clean:
+	rm -rf build/docker/NGINX/tmp
+
