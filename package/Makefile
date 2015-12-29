@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 
 # General method that checks for required environment variables. See http://stackoverflow.com/questions/4728810/makefile-variable-as-prerequisite
-guard-%:
+guard-env-%:
 	@ if [ "${${*}}" == "" ]; then \
 	    echo "---- ERROR ----"; \
 	    echo "Environment variable $* not set"; \
@@ -11,10 +11,10 @@ guard-%:
 	    exit 1; \
 	fi
 
-guard-gcloud:
-	gcloud -v > /dev/null 2>&1 ; \
+guard-cmd-%:
+	$*"-v > /dev/null 2>&1 ; \
 	if [ ! $$? -eq 0 ]; then \
-	    echo "Please verify the gcloud command line tool is installed and in your $PATH"; \
+	    echo "Please verify the $* command line tool is installed and in your $PATH"; \
 	fi
 
 guard-changes:
@@ -25,11 +25,11 @@ guard-changes:
 	    exit 1; \
 	fi
 
-deploy: guard-ENVIRONMENT
+deploy: guard-env-ENVIRONMENT
 	echo "This is a stub method. It does nothing, yet"
 
 # Infrastructure
-create-infrastructure: guard-ENVIRONMENT guard-GOOGLE_CLOUD_PROJECT guard-GOOGLE_CLOUD_ZONE guard-gcloud
+create-infrastructure: guard-env-ENVIRONMENT guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-env-gcloud
 	gcloud container clusters create \
 	    --project=$(GOOGLE_CLOUD_PROJECT) \
 	    --enable-cloud-logging \
@@ -40,24 +40,25 @@ create-infrastructure: guard-ENVIRONMENT guard-GOOGLE_CLOUD_PROJECT guard-GOOGLE
 	    --zone=$(GOOGLE_CLOUD_ZONE) \
 	    magento2-kubernetes
 
-destroy-infrastructure: guard-GOOGLE_CLOUD_PROJECT guard-GOOGLE_CLOUD_ZONE guard-gcloud
+destroy-infrastructure: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud
 	gcloud container clusters delete \
 	    --project=$(GOOGLE_CLOUD_PROJECT) \
 	    --quiet \
 	    --wait \
 	    magento2-kubernetes
 
-create-pod: guard-change create-container-nginx create-container-php
+build-application-web: guard-changes guard-cmd-composer
+	# Implied that grunt exists. Jerk grunt returns a "99" status code with grunt -v.
+	cd application && composer install
+	cd application && grunt install
 
-create-container-nginx:
-	mkdir build/docker/NGINX/tmp
+build-application-pod: guard-changes create-container-nginx create-container-php
 
-	# I dislike having to copy files into the same DIR as the dockerfile. Still, it's the only way I know how this can be done.
-	cp -r etc build/docker/NGINX/tmp/
-	docker build -t magento2-kubernetes/nginx:$(git rev-parse --short HEAD) build/docker/NGINX
+build-application-nginx: guard-changes
+	docker build -t magento2-kubernetes/nginx:$(git rev-parse --short HEAD) -f build/docker/NGINX/Dockerfile .
 
-create-container-php:
+build-application--php:
 
 make clean:
-	rm -rf build/docker/NGINX/tmp
-
+        # Delete application build
+	rm -rf application/vendor
