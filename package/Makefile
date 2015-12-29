@@ -12,7 +12,7 @@ guard-env-%:
 	fi
 
 guard-cmd-%:
-	$*"-v > /dev/null 2>&1 ; \
+	$* -v > /dev/null 2>&1 ; \
 	if [ ! $$? -eq 0 ]; then \
 	    echo "Please verify the $* command line tool is installed and in your $PATH"; \
 	fi
@@ -49,7 +49,8 @@ destroy-infrastructure: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZO
 
 build-application-web: guard-changes guard-cmd-composer
 	# Implied that grunt exists. Jerk grunt returns a "99" status code with grunt -v.
-	cd application && composer install
+	cd application && composer install --ignore-platform-reqs --optimize-autoloader --no-dev
+	cd application && npm install
 	cd application && grunt install
 
 build-application-pod: guard-changes create-container-nginx create-container-php
@@ -62,3 +63,4 @@ build-application--php:
 make clean:
         # Delete application build
 	rm -rf application/vendor
+	rm -rf application/node_modules
