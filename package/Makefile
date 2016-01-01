@@ -61,6 +61,11 @@ build-application-nginx: guard-changes
 build-application--php:
 
 make clean:
-        # Delete application build
+        
+	# Delete application build
 	rm -rf application/vendor
 	rm -rf application/node_modules
+
+	# Delete application cache
+	rm -rf application/var/composer_home/
+	rm -rf application/var/generation/
