@@ -58,10 +58,31 @@ build-application-pod: guard-changes create-container-nginx create-container-php
 build-application-nginx: guard-changes
 	docker build -t magento2-kubernetes/nginx:$(git rev-parse --short HEAD) -f build/docker/NGINX/Dockerfile .
 
-build-application--php:
+build-application-php:
+	# The code generation bit
+	rm -rf application/var/di
+	php application/bin/magento setup:di:compile
+	
+	# Interestingly, this bit doesn't work yet. Nor do I know what it does.
+	# php application/bin/magento setup:di:compile-multi-tenant
+
+	# The bit that allows the less compilation
+	php application/bin/magento dev:source-theme:deploy
+
+	# No idea. But it sounds important
+	# Edit: It doesn't work. Needs arguments. But arguments about what!
+	# php application/bin/magento setup:performance:generate-fixtures
+
+	# The static content bit? I don't know. 
+	php application/bin/magento setup:static-content:deploy
+
+install-application:
+	# This should only be used in dev. If this Makefile hits prod, I'll be super unhappy with you (not really. But it's a bad idea)
+	# Also, yes there are passwords below, yes I know it's never a good idea, but rest assured, they've never been used before or will be again.
+	php application/bin/magento setup:install --db-host=127.0.0.1 --db-name=magento2 --db-user=root --db-password=my-secret-pw --admin-user="User" --admin-firstname=User --admin-lastname=atexampledotcom --admin-email=user@example.com --admin-password=10spaceship
+	
 
 make clean:
-        
 	# Delete application build
 	rm -rf application/vendor
 	rm -rf application/node_modules
