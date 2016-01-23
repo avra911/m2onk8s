@@ -78,12 +78,12 @@ build-application-php:
 # Sending the build context to the docker daemon each time is going to get super annoying. It's like, 1.1gb 
 # at the moment.
 build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT
-	docker build -t ${CONTAINER_NS}/nginx:${GIT_HASH} -f build/docker/NGINX/Dockerfile .
+	docker build -t ${CONTAINER_NS}/nginx:${GIT_HASH} -f build/docker/nginx/Dockerfile .
 	docker tag ${CONTAINER_NS}/nginx:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
 
 build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
-	docker build -t ${CONTAINER_NS}/php:$(git rev-parse --short HEAD) -f build/docker/PHP/Dockerfile .
+	docker build -t ${CONTAINER_NS}/php:$(git rev-parse --short HEAD) -f build/docker/php/Dockerfile .
 	docker tag ${CONTAINER_NS}/php:$(git rev-parse --short HEAD) gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
 
