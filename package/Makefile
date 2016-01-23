@@ -1,6 +1,7 @@
 #Make script that builds and deploy the Magento files
 
 SHELL := /bin/bash
+CONTAINER_NS := m2onk8s
 
 # General method that checks for required environment variables. See http://stackoverflow.com/questions/4728810/makefile-variable-as-prerequisite
 guard-env-%:
@@ -55,9 +56,6 @@ build-application-web: guard-changes guard-cmd-composer
 
 build-application-pod: guard-changes create-container-nginx create-container-php
 
-build-application-nginx: guard-changes
-	docker build -t magento2-kubernetes/nginx:$(git rev-parse --short HEAD) -f build/docker/NGINX/Dockerfile .
-
 build-application-php:
 	# The code generation bit
 	rm -rf application/var/di
@@ -75,6 +73,14 @@ build-application-php:
 
 	# The static content bit? I don't know. 
 	php application/bin/magento setup:static-content:deploy
+
+# Sending the build context to the docker daemon each time is going to get super annoying. It's like, 1.1gb 
+# at the moment.
+build-contianer-nginx: guard-changes
+	docker build -t ${CONTAINER_NS}/nginx:$(git rev-parse --short HEAD) -f build/docker/NGINX/Dockerfile .
+
+build-container-php:
+	docker build -t ${CONTAINER_NS}/php:$(git rev-parse --short HEAD) -f build/docker/PHP/Dockerfile .
 
 install-application:
 	# This should only be used in dev. If this Makefile hits prod, I'll be super unhappy with you (not really. But it's a bad idea)

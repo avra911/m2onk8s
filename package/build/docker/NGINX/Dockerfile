@@ -12,14 +12,14 @@ MAINTAINER <support@littleman.co>
 ADD etc/nginx/site.conf /etc/nginx/sites-enabled/site.conf
 
 # Add static files (files in VCS)
-ADD application/pub/errors/default/css     /var/www/errors/default/css
-ADD application/pub/errors/default/images  /var/www/errors/default/images
+ADD application/pub/errors/default/css     /var/www/pub/errors/default/css
+ADD application/pub/errors/default/images  /var/www/pub/errors/default/images
+
+# Empty PHP File, as there's no PHP in this container.
+RUN touch /var/www/pub/index.php
 
 # Media dir will be mounted on Google Cloud Storage
 VOLUME "/var/www/media/"
 
 EXPOSE 80
 EXPOSE 443
-
-
-
