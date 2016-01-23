@@ -16,10 +16,18 @@ ADD application/pub/errors/default/css     /var/www/pub/errors/default/css
 ADD application/pub/errors/default/images  /var/www/pub/errors/default/images
 
 # Empty PHP File, as there's no PHP in this container.
-ADD build/nginx/php/index.php /var/www/pub/index.php
+ADD build/docker/nginx/index.php /var/www/pub/index.php
 
 # Media dir will be mounted on Google Cloud Storage
 VOLUME "/var/www/media/"
+
+# Remote the default server so it falls back on the new Magento one. 
+# Note: 
+#  Normally, this isn't a good thing. You'd want to drop traffic that
+#  doesn't belong to a given vhost. But we're trying to make this as 
+#  easy as possible, and that means "wide open defaults".
+
+RUN rm /etc/nginx/sites-enabled/default
 
 EXPOSE 80
 EXPOSE 443
