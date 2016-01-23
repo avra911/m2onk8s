@@ -12,6 +12,8 @@ spec:
     selector:
         app: magento
         tier: frontend
+    type: LoadBalancer
+    loadBalancerIP: 104.199.147.12
 ---
 apiVersion: v1
 kind: ReplicationController
@@ -21,14 +23,16 @@ metadata:
         app: magento
         tier: frontend
 spec:
-    replicas: 1
+    replicas: 2
     selector:
-        name: magento
+        app: magento
+        tier: frontend
     template:
         metadata:
             labels:
                 name: magento
                 app: magento
+                tier: frontend
         spec:
             containers:
                 # m2onk8s will need to be replaced with your project ID

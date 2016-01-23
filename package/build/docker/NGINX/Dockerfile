@@ -16,7 +16,7 @@ ADD application/pub/errors/default/css     /var/www/pub/errors/default/css
 ADD application/pub/errors/default/images  /var/www/pub/errors/default/images
 
 # Empty PHP File, as there's no PHP in this container.
-RUN touch /var/www/pub/index.php
+RUN echo "placeholder." > /var/www/pub/index.php
 
 # Media dir will be mounted on Google Cloud Storage
 VOLUME "/var/www/media/"
