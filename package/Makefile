@@ -1,7 +1,9 @@
 #Make script that builds and deploy the Magento files
 
 SHELL := /bin/bash
+PROJECT_NS := m2onk8s
 CONTAINER_NS := m2onk8s
+GIT_HASH := $(shell git rev-parse --short HEAD)
 
 # General method that checks for required environment variables. See http://stackoverflow.com/questions/4728810/makefile-variable-as-prerequisite
 guard-env-%:
@@ -30,7 +32,7 @@ deploy: guard-env-ENVIRONMENT
 	echo "This is a stub method. It does nothing, yet"
 
 # Infrastructure
-create-infrastructure: guard-env-ENVIRONMENT guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-env-gcloud
+create-infrastructure: guard-env-ENVIRONMENT guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud
 	gcloud container clusters create \
 	    --project=$(GOOGLE_CLOUD_PROJECT) \
 	    --enable-cloud-logging \
@@ -39,14 +41,14 @@ create-infrastructure: guard-env-ENVIRONMENT guard-env-GOOGLE_CLOUD_PROJECT guar
 	    --quiet \
 	    --wait \
 	    --zone=$(GOOGLE_CLOUD_ZONE) \
-	    magento2-kubernetes
+	    m2onk8s
 
 destroy-infrastructure: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud
 	gcloud container clusters delete \
 	    --project=$(GOOGLE_CLOUD_PROJECT) \
 	    --quiet \
 	    --wait \
-	    magento2-kubernetes
+	    m2onk8s
 
 build-application-web: guard-changes guard-cmd-composer
 	# Implied that grunt exists. Jerk grunt returns a "99" status code with grunt -v.
@@ -73,14 +75,17 @@ build-application-php:
 
 	# The static content bit? I don't know. 
 	php application/bin/magento setup:static-content:deploy
-
 # Sending the build context to the docker daemon each time is going to get super annoying. It's like, 1.1gb 
 # at the moment.
-build-contianer-nginx: guard-changes
-	docker build -t ${CONTAINER_NS}/nginx:$(git rev-parse --short HEAD) -f build/docker/NGINX/Dockerfile .
+build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT
+	docker build -t ${CONTAINER_NS}/nginx:${GIT_HASH} -f build/docker/NGINX/Dockerfile .
+	docker tag ${CONTAINER_NS}/nginx:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
+	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
 
-build-container-php:
+build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
 	docker build -t ${CONTAINER_NS}/php:$(git rev-parse --short HEAD) -f build/docker/PHP/Dockerfile .
+	docker tag ${CONTAINER_NS}/php:$(git rev-parse --short HEAD) gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
+	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
 
 install-application:
 	# This should only be used in dev. If this Makefile hits prod, I'll be super unhappy with you (not really. But it's a bad idea)

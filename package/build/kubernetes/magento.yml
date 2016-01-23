@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: magento
+    labels:
+        app: magento
+        tier: frontend
+spec:
+    ports:
+    - port: 80
+    # Needs Port 443 here. Not sure how this works yet.
+    selector:
+        app: magento
+        tier: frontend
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+    name: magento
+    labels:
+        app: magento
+        tier: frontend
+spec:
+    replicas: 1
+    selector:
+        name: magento
+    template:
+        metadata:
+            labels:
+                name: magento
+                app: magento
+        spec:
+            containers:
+                # m2onk8s will need to be replaced with your project ID
+                - name: magento
+                  image: gcr.io/m2onk8s/php:9323b73
+                  ports:
+                  - containerPort: 9000
+                - name: nginx
+                  image: gcr.io/m2onk8s/nginx:9323b73
+                  ports:
+                  - containerPort: 80
+                  - containerPort: 443
+
