@@ -1,5 +1,5 @@
 # Dockerfile
-FROM littlemanco/php-fpm:7.0.2-2dev 
+FROM littlemanco/php-fpm:7.0.2-3dev 
 MAINTAINER littleman.co <support@littleman.co>
 
 ADD application /var/www/
