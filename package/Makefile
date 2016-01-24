@@ -87,6 +87,9 @@ build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
 	docker tag ${CONTAINER_NS}/php:$(git rev-parse --short HEAD) gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
 
+push-magento:
+	kubectl replace -f build/kubernetes/magento.yml
+
 install-application:
 	# This should only be used in dev. If this Makefile hits prod, I'll be super unhappy with you (not really. But it's a bad idea)
 	# Also, yes there are passwords below, yes I know it's never a good idea, but rest assured, they've never been used before or will be again.
