@@ -1,6 +1,9 @@
 # Dockerfile
-FROM littlemanco/php-fpm:7.0.2-3dev 
+FROM littlemanco/php-fpm:7.0.2-3 
 MAINTAINER littleman.co <support@littleman.co>
+
+# Add required PHP Extensions
+RUN apt-get update && apt-get install -y php7.0-curl php7.0-gd php7.0-intl php7.0-mysql php7.0-xsl
 
 ADD application /var/www/
 RUN chown -R www-data:www-data /var/www/
