@@ -37,7 +37,7 @@ spec:
             containers:
                 # m2onk8s will need to be replaced with your project ID
                 - name: magento
-                  image: gcr.io/m2onk8s/php:84c7b42
+                  image: gcr.io/m2onk8s/php:4f1a76b
                   ports:
                   - containerPort: 9000
                 - name: nginx
