@@ -32,7 +32,8 @@ deploy: guard-env-ENVIRONMENT
 	echo "This is a stub method. It does nothing, yet"
 
 # Infrastructure
-create-infrastructure: guard-env-ENVIRONMENT guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud
+
+create-instances: guard-env-ENVIRONMENT guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud
 	gcloud container clusters create \
 	    --project=$(GOOGLE_CLOUD_PROJECT) \
 	    --enable-cloud-logging \
@@ -42,6 +43,15 @@ create-infrastructure: guard-env-ENVIRONMENT guard-env-GOOGLE_CLOUD_PROJECT guar
 	    --wait \
 	    --zone=$(GOOGLE_CLOUD_ZONE) \
 	    m2onk8s
+
+create-sql: guard-env-GOOGLE_CLOUD_ZONE
+	gcloud sql instances create \
+	    --assign-ip \
+	    --backup \
+	    --require-ssl \
+	    m2onk8s
+
+create-infrastructure: create-instances create-sql
 
 destroy-infrastructure: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud
 	gcloud container clusters delete \
