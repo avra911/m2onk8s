@@ -2,7 +2,7 @@
 return array (
   'backend' => 
   array (
-    'frontName' => '',
+    'frontName' => $_ENV['ADMIN_PANEL_PATH'],
   ),
   'install' => 
   array (
@@ -10,7 +10,7 @@ return array (
   ),
   'crypt' => 
   array (
-    'key' => '',
+    'key' => $_ENV['CRYPT_KEY'],
   ),
   'session' => 
   array (
@@ -23,10 +23,10 @@ return array (
     array (
       'default' => 
       array (
-        'host' => '127.0.0.1',
-        'dbname' => 'magento2',
-        'username' => '',
-        'password' => '',
+        'host' => $_ENV['DATABASE_HOST'],
+        'dbname' => $_ENV['DATABASE_NAME'],
+        'username' => $_ENV['DATABASE_USERNAME'],
+        'password' => $_ENV['DATABASE_PASSWORD'],
         'model' => 'mysql4',
         'engine' => 'innodb',
         'initStatements' => 'SET NAMES utf8;',

@@ -43,3 +43,7 @@ if (!empty($_SERVER['MAGE_PROFILER'])
 }
 
 date_default_timezone_set('UTC');
+
+// Initialise environment variables
+$dotenv = new Dotenv\Dotenv('/etc/magento/');
+$dotenv->load();
