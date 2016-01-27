@@ -15,7 +15,8 @@
     ],
     "require": {
         "magento/product-community-edition": "2.0.1",
-        "composer/composer": "@alpha"
+        "composer/composer": "@alpha", 
+	"vlucas/phpdotenv": "2.2.*"
     },
     "require-dev": {
         "phpunit/phpunit": "4.1.0",
