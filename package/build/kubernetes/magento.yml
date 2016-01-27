@@ -34,15 +34,22 @@ spec:
                 app: magento
                 tier: frontend
         spec:
+            volumes:
+                - name: etcmagento
+                  secret: 
+                      secretName: magento-credentials
             containers:
                 # m2onk8s will need to be replaced with your project ID
                 - name: magento
                   image: gcr.io/m2onk8s/php:4f1a76b
                   ports:
                   - containerPort: 9000
+                  volumeMounts: 
+                      - name: etcmagento
+                        readOnly: true
+                        mountPath: /etc/magento
                 - name: nginx
                   image: gcr.io/m2onk8s/nginx:f289fa2
                   ports:
                   - containerPort: 80
-                  - containerPort: 443
-
+                    containerPort: 443
