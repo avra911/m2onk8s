@@ -50,7 +50,7 @@
                     },
                     {
                         "name": "nginx",
-                        "image": "gcr.io/m2onk8s/nginx:b293918",
+                        "image": "gcr.io/m2onk8s/nginx:167df6e",
                         "ports": [
                             {
                                 "containerPort": 80
