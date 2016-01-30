@@ -5,7 +5,7 @@
 # (in theory) security issues in NGINX could affect PHP, and you could 
 # accidentally misconfigure NGINX and dump your PHP source onto the 
 # interwebs.
-FROM littlemanco/nginx:1.9.9-2
+FROM littlemanco/nginx:alpine .
 MAINTAINER <support@littleman.co>
 
 # ADD Configuration
@@ -19,6 +19,9 @@ ADD application/pub/opt/                   /var/www/pub/opt
 
 # Empty PHP File, as there's no PHP in this container.
 ADD build/docker/nginx/index.php /var/www/pub/index.php
+
+# Change the owner of all files to be www-dat
+RUN chown -R www-data:www-data /var/www 
 
 # Media dir will be mounted on Google Cloud Storage
 VOLUME "/var/www/media/"
