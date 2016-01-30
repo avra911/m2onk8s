@@ -14,6 +14,8 @@ ADD etc/nginx/site.conf /etc/nginx/sites-enabled/site.conf
 # Add static files (files in VCS)
 ADD application/pub/errors/default/css     /var/www/pub/errors/default/css
 ADD application/pub/errors/default/images  /var/www/pub/errors/default/images
+ADD application/pub/static/                /var/www/pub/static
+ADD application/pub/opt/                   /var/www/pub/opt
 
 # Empty PHP File, as there's no PHP in this container.
 ADD build/docker/nginx/index.php /var/www/pub/index.php
