@@ -2,23 +2,23 @@
     "apiVersion": "v1",
     "kind": "ReplicationController",
     "metadata": {
-        "name": "magento",
+        "name": "php-b792a0d",
         "labels": {
-            "app": "magento",
+            "app": "php",
             "tier": "frontend"
         }
     },
     "spec": {
         "replicas": 2,
         "selector": {
-            "app": "magento",
+            "app": "php",
             "tier": "frontend"
         },
         "template": {
             "metadata": {
                 "labels": {
-                    "name": "magento",
-                    "app": "magento",
+                    "name": "php",
+                    "app": "php",
                     "tier": "frontend"
                 }
             },
@@ -33,7 +33,7 @@
                 ],
                 "containers": [
                     {
-                        "name": "magento",
+                        "name": "php",
                         "image": "gcr.io/m2onk8s/php:1e660f1",
                         "ports": [
                             {
@@ -50,7 +50,7 @@
                     },
                     {
                         "name": "nginx",
-                        "image": "gcr.io/m2onk8s/nginx:1e660f1",
+                        "image": "gcr.io/m2onk8s/nginx:b792a0d",
                         "ports": [
                             {
                                 "containerPort": 80
