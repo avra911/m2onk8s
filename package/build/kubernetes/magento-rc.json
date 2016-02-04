@@ -34,7 +34,7 @@
                 "containers": [
                     {
                         "name": "magento",
-                        "image": "gcr.io/m2onk8s/php:b7f193e",
+                        "image": "gcr.io/m2onk8s/php:1e660f1",
                         "ports": [
                             {
                                 "containerPort": 9000
@@ -50,7 +50,7 @@
                     },
                     {
                         "name": "nginx",
-                        "image": "gcr.io/m2onk8s/nginx:167df6e",
+                        "image": "gcr.io/m2onk8s/nginx:1e660f1",
                         "ports": [
                             {
                                 "containerPort": 80
