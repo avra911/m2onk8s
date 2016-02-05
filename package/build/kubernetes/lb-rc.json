@@ -26,7 +26,7 @@
                 "containers": [
                     {
                         "name": "nginx",
-                        "image": "gcr.io/m2onk8s/nginx:b792a0d",
+                        "image": "gcr.io/m2onk8s/nginx:0db1e13",
                         "ports": [
                             {
                                 "containerPort": 80

@@ -5,7 +5,7 @@
 # (in theory) security issues in NGINX could affect PHP, and you could 
 # accidentally misconfigure NGINX and dump your PHP source onto the 
 # interwebs.
-FROM littlemanco/nginx:alpine
+FROM littlemanco/nginx:1.9.9-3
 MAINTAINER <support@littleman.co>
 
 # ADD Configuration
@@ -36,6 +36,3 @@ RUN rm /etc/nginx/sites-enabled/default
 
 EXPOSE 80
 EXPOSE 443
-
-CMD "nginx -g daemon off;"
-
