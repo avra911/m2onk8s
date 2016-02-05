@@ -37,5 +37,5 @@ RUN rm /etc/nginx/sites-enabled/default
 EXPOSE 80
 EXPOSE 443
 
-# Invoke NGINX with sh so we can skip supervisor
-ENTRYPOINT ["/bin/sh"]
+CMD "nginx -g daemon off;"
+
