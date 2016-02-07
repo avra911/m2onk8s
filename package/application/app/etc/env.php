@@ -2,7 +2,7 @@
 return array (
   'backend' => 
   array (
-    'frontName' => 'admin',
+    'frontName' => $_ENV['ADMIN_PANEL_PATH'],
   ),
   'install' => 
   array (
@@ -10,7 +10,7 @@ return array (
   ),
   'crypt' => 
   array (
-    'key' => 'abcdefghjijlmnop',
+    'key' => $_ENV['CRYPT_KEY'],
   ),
   'session' => 
   array (
@@ -18,14 +18,15 @@ return array (
   ),
   'db' => 
   array (
+    'table_prefix' => '',
     'connection' => 
     array (
       'default' => 
       array (
-        'host' => '127.0.0.1',
-        'dbname' => 'magento2',
-        'username' => 'root',
-        'password' => 'my-secret-password',
+        'host' => $_ENV['DATABASE_HOST'],
+        'dbname' => $_ENV['DATABASE_NAME'],
+        'username' => $_ENV['DATABASE_USERNAME'],
+        'password' => $_ENV['DATABASE_PASSWORD'],
       ),
     ),
   ),
