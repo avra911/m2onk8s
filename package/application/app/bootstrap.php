@@ -31,6 +31,10 @@ HTML;
 require_once __DIR__ . '/autoload.php';
 require_once BP . '/app/functions.php';
 
+// Initialize the dotenv plugin
+$dotenv = new Dotenv\Dotenv('/etc/magento');
+$dotenv->load();
+
 if (!empty($_SERVER['MAGE_PROFILER'])
     && isset($_SERVER['HTTP_ACCEPT'])
     && strpos($_SERVER['HTTP_ACCEPT'], 'text/html') !== false
@@ -43,7 +47,3 @@ if (!empty($_SERVER['MAGE_PROFILER'])
 }
 
 date_default_timezone_set('UTC');
-
-// Initialise environment variables
-$dotenv = new Dotenv\Dotenv('/etc/magento/');
-$dotenv->load();
