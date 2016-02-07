@@ -1,27 +1,27 @@
 <?php
 return array (
-  'backend' => 
+  'backend' =>
   array (
     'frontName' => $_ENV['ADMIN_PANEL_PATH'],
   ),
-  'install' => 
+  'install' =>
   array (
     'date' => 'Fri, 22 Jan 2016 11:46:19 +0000',
   ),
-  'crypt' => 
+  'crypt' =>
   array (
     'key' => $_ENV['CRYPT_KEY'],
   ),
-  'session' => 
+  'session' =>
   array (
     'save' => 'files',
   ),
-  'db' => 
+  'db' =>
   array (
     'table_prefix' => '',
-    'connection' => 
+    'connection' =>
     array (
-      'default' => 
+      'default' =>
       array (
         'host' => $_ENV['DATABASE_HOST'],
         'dbname' => $_ENV['DATABASE_NAME'],
@@ -30,16 +30,16 @@ return array (
       ),
     ),
   ),
-  'resource' => 
+  'resource' =>
   array (
-    'default_setup' => 
+    'default_setup' =>
     array (
       'connection' => 'default',
     ),
   ),
   'x-frame-options' => 'SAMEORIGIN',
-  'MAGE_MODE' => 'default',
-  'cache_types' => 
+  'MAGE_MODE' => 'production',
+  'cache_types' =>
   array (
     'config' => 1,
     'layout' => 1,
