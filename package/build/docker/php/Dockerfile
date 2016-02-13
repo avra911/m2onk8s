@@ -1,5 +1,5 @@
 # Dockerfile
-FROM littlemanco/phpfpm:7.0.2-2  
+FROM littlemanco/phpfpm:7.0.3-1 
 MAINTAINER littleman.co <support@littleman.co>
 
 # Set redis as the session handler
@@ -13,8 +13,8 @@ RUN php-fpm -i | grep session
 ADD application /var/www/
 
 # Todo: Sort out why these permissions are required (and why they're not working, even for root)
-RUN chown -R www-data:www-data /var/www/
-RUN chmod 777 /var/www/var/
-RUN find /var/www/var/ -type d -exec chmod 777 {} \;
+RUN chown -R www-data:www-data /var/www && \
+    chmod 777 /var/www/var/ && \
+    find /var/www/var/ -type d -exec chmod 777 {} \;
 
 VOLUME ["/etc/magento"]

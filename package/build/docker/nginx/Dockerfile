@@ -5,7 +5,7 @@
 # (in theory) security issues in NGINX could affect PHP, and you could 
 # accidentally misconfigure NGINX and dump your PHP source onto the 
 # interwebs.
-FROM littlemanco/nginx:1.9.9-3
+FROM littlemanco/nginx:1.9.11-1
 MAINTAINER <support@littleman.co>
 
 # ADD Configuration

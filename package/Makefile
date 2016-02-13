@@ -93,8 +93,8 @@ build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
 
 build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
-	docker build -t ${CONTAINER_NS}/php:$(git rev-parse --short HEAD) -f build/docker/php/Dockerfile .
-	docker tag ${CONTAINER_NS}/php:$(git rev-parse --short HEAD) gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
+	docker build -t ${CONTAINER_NS}/php:${GIT_HASH} -f build/docker/php/Dockerfile .
+	docker tag ${CONTAINER_NS}/php:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
 
 push-magento:
