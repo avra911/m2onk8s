@@ -2,7 +2,7 @@
     "apiVersion": "v1",
     "kind": "ReplicationController",
     "metadata": {
-        "name": "lb-56daa78",
+        "name": "lb-666afe5",
         "labels": {
             "app": "nginx",
             "tier": "frontend"
@@ -26,7 +26,7 @@
                 "containers": [
                     {
                         "name": "nginx",
-                        "image": "gcr.io/m2onk8s/nginx:56daa78",
+                        "image": "gcr.io/m2onk8s/nginx:666afe5",
                         "ports": [
                             {
                                 "containerPort": 80

@@ -1,5 +1,5 @@
 # Dockerfile
-FROM littlemanco/phpfpm:7.0.3-1 
+FROM littlemanco/phpfpm:7.0.3-2 
 MAINTAINER littleman.co <support@littleman.co>
 
 # Set redis as the session handler
