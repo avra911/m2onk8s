@@ -5,6 +5,13 @@ PROJECT_NS := m2onk8s
 CONTAINER_NS := m2onk8s
 GIT_HASH := $(shell git rev-parse --short HEAD)
 
+UID_WWW_DATA := 100
+GID_WWW_DATA := 101
+UID_OWNER := $(shell id -u `whoami`)
+GID_OWNER := $(shell id -g `whoami`)
+
+PATH_APPLICATION := application
+
 # General method that checks for required environment variables. See http://stackoverflow.com/questions/4728810/makefile-variable-as-prerequisite
 guard-env-%:
 	@ if [ "${${*}}" == "" ]; then \
@@ -93,8 +100,10 @@ build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
 
 build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
+	chown -R ${UID_WWW_DATA}:{$GID_WWW_DATA} ${PATH_APPLICATION} 	
 	docker build -t ${CONTAINER_NS}/php:${GIT_HASH} -f build/docker/php/Dockerfile .
 	docker tag ${CONTAINER_NS}/php:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
+	chown -R ${UID_OWNER}:${GID_OWNER} ${PATH_APPLICATION}
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
 
 push-magento:
@@ -104,9 +113,8 @@ install-application:
 	# This should only be used in dev. If this Makefile hits prod, I'll be super unhappy with you (not really. But it's a bad idea)
 	# Also, yes there are passwords below, yes I know it's never a good idea, but rest assured, they've never been used before or will be again.
 	php application/bin/magento setup:install --db-host=127.0.0.1 --db-name=magento2 --db-user=root --db-password=my-secret-pw --admin-user="User" --admin-firstname=User --admin-lastname=atexampledotcom --admin-email=user@example.com --admin-password=10spaceship
-	
 
-make clean:
+clean:
 	# Delete application build
 	rm -rf application/vendor
 	rm -rf application/node_modules
