@@ -100,10 +100,10 @@ build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
 
 build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
-	chown -R ${UID_WWW_DATA}:{$GID_WWW_DATA} ${PATH_APPLICATION} 	
-	docker build -t ${CONTAINER_NS}/php:${GIT_HASH} -f build/docker/php/Dockerfile .
+	sudo chown -R ${UID_WWW_DATA}:${GID_WWW_DATA} ${PATH_APPLICATION} 	
+	sudo docker build -t ${CONTAINER_NS}/php:${GIT_HASH} -f build/docker/php/Dockerfile .
 	docker tag ${CONTAINER_NS}/php:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
-	chown -R ${UID_OWNER}:${GID_OWNER} ${PATH_APPLICATION}
+	sudo chown -R ${UID_OWNER}:${GID_OWNER} ${PATH_APPLICATION}
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
 
 push-magento:
