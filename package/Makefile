@@ -109,11 +109,11 @@ build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
 push-magento:
 	kubectl replace -f build/kubernetes/magento.yml
 
-install-application:
+mock-runtime-env:
 	# This should only be used in dev. If this Makefile hits prod, I'll be super unhappy with you (not really. But it's a bad idea)
 	# Also, yes there are passwords below, yes I know it's never a good idea, but rest assured, they've never been used before or will be again.
+	docker run --name=mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d -p 3306:3306  mysql/mysql-server:5.7 
 	php application/bin/magento setup:install --db-host=127.0.0.1 --db-name=magento2 --db-user=root --db-password=my-secret-pw --admin-user="User" --admin-firstname=User --admin-lastname=atexampledotcom --admin-email=user@example.com --admin-password=10spaceship
-
 clean:
 	# Delete application build
 	rm -rf application/vendor
