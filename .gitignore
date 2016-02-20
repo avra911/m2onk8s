@@ -1,5 +1,8 @@
-# IDE Files
+# IDE Files\
 .idea
 
 # ENV
 .env
+
+# Generated Files
+package/application/node_modules
