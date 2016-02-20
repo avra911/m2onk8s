@@ -9,6 +9,7 @@
  */
 error_reporting(E_ALL);
 #ini_set('display_errors', 1);
+
 umask(0);
 
 /* PHP version validation */
@@ -31,10 +32,6 @@ HTML;
 require_once __DIR__ . '/autoload.php';
 require_once BP . '/app/functions.php';
 
-// Initialize the dotenv plugin
-$dotenv = new Dotenv\Dotenv('/etc/magento');
-$dotenv->load();
-
 if (!empty($_SERVER['MAGE_PROFILER'])
     && isset($_SERVER['HTTP_ACCEPT'])
     && strpos($_SERVER['HTTP_ACCEPT'], 'text/html') !== false
@@ -45,5 +42,10 @@ if (!empty($_SERVER['MAGE_PROFILER'])
         !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest'
     );
 }
+
+$dotenv = new \Dotenv\Dotenv('/etc/magento');
+$dotenv->load();
+
+
 
 date_default_timezone_set('UTC');
