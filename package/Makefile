@@ -5,8 +5,8 @@ PROJECT_NS := m2onk8s
 CONTAINER_NS := m2onk8s
 GIT_HASH := $(shell git rev-parse --short HEAD)
 
-UID_WWW_DATA := 100
-GID_WWW_DATA := 101
+UID_WWW_DATA := 33 
+GID_WWW_DATA := 33 
 UID_OWNER := $(shell id -u `whoami`)
 GID_OWNER := $(shell id -g `whoami`)
 
