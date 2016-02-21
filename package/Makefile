@@ -140,7 +140,7 @@ build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
 # ---------------------
 
 push-magento:
-	kubectl replace -f build/kubernetes/magento.yml
+	sed "s/{{GIT_HASH}}/$(GIT_HASH)/" build/kubernetes/magento-rc.json | kubectl create -f -
 
 push-secret: 
 	sed "s/{{BASE_64}}/$(SECRET_MAGENTO)/" build/kubernetes/magento-secret.json | kubectl replace -f - 
