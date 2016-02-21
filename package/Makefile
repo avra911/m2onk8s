@@ -18,6 +18,8 @@ PATH_APPLICATION         := $(shell pwd)/application
 PATH_BUILD_CONFIGURATION := $(shell pwd)/build
 PATH_ARTIFACTS           := $(PATH_BUILD_CONFIGURATION)/artifacts
 
+SECRET_MAGENTO := $(shell base64 -w 0 build/secrets/.env)
+
 # Guards
 # ------
 
@@ -137,6 +139,9 @@ build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
 
 push-magento:
 	kubectl replace -f build/kubernetes/magento.yml
+
+push-secret: 
+	sed "s/{{BASE_64}}/$(SECRET_MAGENTO)/" build/kubernetes/magento-secret.json | kubectl replace -f - 
 
 # Development Tasks
 # -----------------
