@@ -14,8 +14,9 @@ return array (
   ),
   'session' =>
   array (
-    'save' => 'files',
-  ),
+    'save' => $_ENV['SESSION_SAVE_TYPE'],
+    'save_path' => $ENV['SESSION_SAVE_PATH']
+   ),
   'db' =>
   array (
     'table_prefix' => '',
