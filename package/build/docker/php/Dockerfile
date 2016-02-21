@@ -23,7 +23,7 @@ RUN echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list &&
  
     # Add PHP Redis settings to PHP config
     echo "session.save_handler = redis" >> /etc/php/7.0/fpm/conf.d/050-redis.ini && \
-    echo "session.save_path = tcp://redis.local:6379" >> /etc/php/7.0/fpm/conf.d/050-redis.ini && \
+    echo "session.save_path = tcp://redis.default.svc.cluster.local:6379" >> /etc/php/7.0/fpm/conf.d/050-redis.ini && \
     # Clean up
     apt-get autoremove -y && \
     apt-get purge build-essential php7.0-dev git -y && \
