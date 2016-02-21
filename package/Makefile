@@ -130,7 +130,9 @@ build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT pack-static-assets
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
 
 build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
-	sudo docker build -t ${CONTAINER_NS}/php:${GIT_HASH} -f build/docker/php/Dockerfile $(PATH_BUILD_CONFIGURATION) 
+	# Unfortunately, as we're tar-ing the archive Docker doesn't seem to pick up filesystem changes, and invalidate the appropraite image
+	# caches. So, we're never using one.
+	sudo docker build --no-cache -t ${CONTAINER_NS}/php:${GIT_HASH} -f build/docker/php/Dockerfile $(PATH_BUILD_CONFIGURATION) 
 	docker tag ${CONTAINER_NS}/php:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
 
