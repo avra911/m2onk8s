@@ -1,4 +1,7 @@
-#Make script that builds and deploy the Magento files
+# Make script that builds and deploy the Magento files
+
+# Variables
+# ---------
 
 SHELL := /bin/bash
 PROJECT_NS := m2onk8s
@@ -7,10 +10,15 @@ GIT_HASH := $(shell git rev-parse --short HEAD)
 
 UID_WWW_DATA := 33
 GID_WWW_DATA := 33
-UID_OWNER := $(shell id -u `whoami`)
-GID_OWNER := $(shell id -g `whoami`)
+UID_OWNER    := $(shell id -u `whoami`)
+GID_OWNER    := $(shell id -g `whoami`)
 
-PATH_APPLICATION := application
+PATH_APPLICATION         := application
+PATH_BUILD_CONFIGURATION := build
+PATH_ARTIFACTS           := $(PATH_BUILD_CONFIGURATION)/artifacts
+
+# Guards
+# ------
 
 # General method that checks for required environment variables. See http://stackoverflow.com/questions/4728810/makefile-variable-as-prerequisite
 guard-env-%:
@@ -39,6 +47,7 @@ deploy: guard-env-ENVIRONMENT
 	echo "This is a stub method. It does nothing, yet"
 
 # Infrastructure
+# --------------
 
 create-instances: guard-env-ENVIRONMENT guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud
 	gcloud container clusters create \
@@ -67,13 +76,22 @@ destroy-infrastructure: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZO
 	    --wait \
 	    m2onk8s
 
+# Artifact Generation
+# -------------------
+
+pack-application:
+	# Needs root to set user
+	- sudo rm $(PATH_ARTIFACTS)/application.tar.gz
+	sudo tar -cvzf $(PATH_ARTIFACTS)/application.tar.gz $(PATH_APPLICATION) \
+	    --owner=$(UID_WWW_DATA) \
+	    --group=$(GID_WWW_DATA)
+
+# Todo: merge with build-application-php, swap with "compile-application" - There's no web or other.
 build-application-web: guard-changes guard-cmd-composer
 	# Implied that grunt exists. Jerk grunt returns a "99" status code with grunt -v.
 	cd application && composer install --ignore-platform-reqs --optimize-autoloader --no-dev
 	cd application && npm install
 	cd application && grunt install
-
-build-application-pod: guard-changes create-container-nginx create-container-php
 
 build-application-php:
 	# The code generation bit
@@ -92,6 +110,7 @@ build-application-php:
 
 	# The static content bit? I don't know. 
 	php application/bin/magento setup:static-content:deploy
+
 # Sending the build context to the docker daemon each time is going to get super annoying. It's like, 1.1gb 
 # at the moment.
 build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT
@@ -100,14 +119,18 @@ build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
 
 build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
-	sudo chown -R ${UID_WWW_DATA}:${GID_WWW_DATA} ${PATH_APPLICATION} 	
-	sudo docker build -t ${CONTAINER_NS}/php:${GIT_HASH} -f build/docker/php/Dockerfile .
+	sudo docker build -t ${CONTAINER_NS}/php:${GIT_HASH} -f build/docker/php/Dockerfile $(PATH_BUILD_CONFIGURATION) 
 	docker tag ${CONTAINER_NS}/php:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
-	sudo chown -R ${UID_OWNER}:${GID_OWNER} ${PATH_APPLICATION}
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
+
+# Artifact deployment
+# ---------------------
 
 push-magento:
 	kubectl replace -f build/kubernetes/magento.yml
+
+# Development Tasks
+# -----------------
 
 mock-runtime-env:
 	# This should only be used in dev. If this Makefile hits prod, I'll be super unhappy with you (not really. But it's a bad idea)

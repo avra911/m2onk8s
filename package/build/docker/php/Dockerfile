@@ -28,6 +28,7 @@ RUN echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list &&
     echo "extension = redis.so" >> /etc/php/7.0/fpm/conf.d/050-redis.ini && \
 
     # Clean up
+    apt-get autoremove -y && \
     apt-get purge build-essential php7.0-dev git -y && \
     apt-get clean && \
 
@@ -47,15 +48,18 @@ RUN echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list &&
     ## Move the PID into a folder that exists
     sed -i "s/\/run\/php\/php7.0-fpm.pid/\/run\/php7.0-fpm.pid/" /etc/php/7.0/fpm/php-fpm.conf && \
     ## Log everything to stdout, where it'll get picked up by docker / kubernetes && \
-    sed -i "s/\/var\/log\/php7.0-fpm.log/\/proc\/self\/fd\/2/" /etc/php/7.0/fpm/php-fpm.conf
+    sed -i "s/\/var\/log\/php7.0-fpm.log/\/proc\/self\/fd\/2/" /etc/php/7.0/fpm/php-fpm.conf && \
 
+# Create the /var/www dir
+    mkdir /var/www && \
+    chown www-data:www-data /var/www 
+
+VOLUME ["/etc/magento"]
 CMD php-fpm7.0
 
 # Todo: Adding the entire dir is a disaster. Let's only add the things that we need to
 #       It looks like this isn't possible with just the "Add" command. Might have to add 
 #       a tarball that's been constructed (this might also solve some of the size issues
 #       with chown? 
-ADD application /var/www/
-RUN chown -R www-data:www-data /var/www
 
-VOLUME ["/etc/magento"]
+ADD artifacts/application.tar.gz /var/www/
