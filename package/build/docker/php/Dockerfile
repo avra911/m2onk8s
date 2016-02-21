@@ -10,23 +10,20 @@ RUN echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list &&
         php7.0-json \
         php7.0-opcache \
         php7.0-dev \
+        php7.0-curl \
+        php7.0-gd \
+        php7.0-imagick \ 
+        php7.0-intl \
+        php7.0-mcrypt \
+        php7.0-mysql \
+        php7.0-xsl \
+	php7.0-redis \
         git \
         build-essential && \ 
  
-    # Install PHP Redis
-    cd /tmp && \ 
-    git clone https://github.com/phpredis/phpredis.git && \
-    cd phpredis && \
-    git checkout php7 && \
-    phpize && \
-    ./configure && \
-    make && make install && \
-
     # Add PHP Redis settings to PHP config
     echo "session.save_handler = redis" >> /etc/php/7.0/fpm/conf.d/050-redis.ini && \
     echo "session.save_path = tcp://redis.local:6379" >> /etc/php/7.0/fpm/conf.d/050-redis.ini && \
-    echo "extension = redis.so" >> /etc/php/7.0/fpm/conf.d/050-redis.ini && \
-
     # Clean up
     apt-get autoremove -y && \
     apt-get purge build-essential php7.0-dev git -y && \
@@ -49,6 +46,9 @@ RUN echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list &&
     sed -i "s/\/run\/php\/php7.0-fpm.pid/\/run\/php7.0-fpm.pid/" /etc/php/7.0/fpm/php-fpm.conf && \
     ## Log everything to stdout, where it'll get picked up by docker / kubernetes && \
     sed -i "s/\/var\/log\/php7.0-fpm.log/\/proc\/self\/fd\/2/" /etc/php/7.0/fpm/php-fpm.conf && \
+# Enable MySQL PDO adapter
+    echo "extension = php_mysqli.dll" >> /etc/php/7.0/fpm/conf.d/060-pdo_mysql.ini && \
+    echo "extension = php_pdo_mysql" >> /etc/php/7.0/fpm/conf.d/060-pdo_mysql.ini && \
 
 # Create the /var/www dir
     mkdir /var/www && \
