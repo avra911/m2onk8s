@@ -10,6 +10,7 @@ GIT_HASH := $(shell git rev-parse --short HEAD)
 
 UID_WWW_DATA := 33
 GID_WWW_DATA := 33
+
 UID_OWNER    := $(shell id -u `whoami`)
 GID_OWNER    := $(shell id -g `whoami`)
 
@@ -87,6 +88,14 @@ pack-application:
 	    --owner=$(UID_WWW_DATA) \
 	    --group=$(GID_WWW_DATA)
 
+pack-static-assets:
+	# Needs root to set user
+	- sudo rm $(PATH_ARTIFACTS)/static.tar.gz
+	cd $(PATH_APPLICATION) && \
+	sudo tar -cvzf $(PATH_ARTIFACTS)/static.tar.gz pub \
+	    --owner=1000 \
+	    --group=1000
+
 # Todo: merge with build-application-php, swap with "compile-application" - There's no web or other.
 compile-application: guard-changes guard-cmd-composer
 	# Implied that grunt exists. Jerk grunt returns a "99" status code with grunt -v.
@@ -113,8 +122,8 @@ compile-application: guard-changes guard-cmd-composer
 
 # Sending the build context to the docker daemon each time is going to get super annoying. It's like, 1.1gb 
 # at the moment.
-build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT
-	docker build -t ${CONTAINER_NS}/nginx:${GIT_HASH} -f build/docker/nginx/Dockerfile .
+build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT pack-static-assets
+	docker build -t ${CONTAINER_NS}/nginx:${GIT_HASH} -f build/docker/nginx/Dockerfile . 
 	docker tag ${CONTAINER_NS}/nginx:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
 

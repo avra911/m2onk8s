@@ -9,19 +9,8 @@ FROM littlemanco/nginx:1.9.11-1
 MAINTAINER <support@littleman.co>
 
 # ADD Configuration
-ADD etc/nginx/site.conf /etc/nginx/sites-enabled/site.conf
-
-# Add static files (files in VCS)
-ADD application/pub/errors/default/css     /var/www/pub/errors/default/css
-ADD application/pub/errors/default/images  /var/www/pub/errors/default/images
-ADD application/pub/static/                /var/www/pub/static
-ADD application/pub/opt/                   /var/www/pub/opt
-
-# Empty PHP File, as there's no PHP in this container.
-ADD build/docker/nginx/index.php /var/www/pub/index.php
-
-# Change the owner of all files to be www-dat
-RUN chown -R www-data:www-data /var/www 
+ADD /etc/nginx/site.conf /etc/nginx/sites-enabled/site.conf
+ADD /build/artifacts/static.tar.gz /var/www/
 
 # Media dir will be mounted on Google Cloud Storage
 VOLUME "/var/www/media/"
