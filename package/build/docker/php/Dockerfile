@@ -47,8 +47,7 @@ RUN echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list &&
     ## Log everything to stdout, where it'll get picked up by docker / kubernetes && \
     sed -i "s/\/var\/log\/php7.0-fpm.log/\/proc\/self\/fd\/2/" /etc/php/7.0/fpm/php-fpm.conf && \
 # Enable MySQL PDO adapter
-    echo "extension = php_mysqli.dll" >> /etc/php/7.0/fpm/conf.d/060-pdo_mysql.ini && \
-    echo "extension = php_pdo_mysql" >> /etc/php/7.0/fpm/conf.d/060-pdo_mysql.ini && \
+    echo "extension = pdo_mysql.so" >> /etc/php/7.0/fpm/conf.d/060-pdo_mysql.ini && \
 
 # Create the /var/www dir
     mkdir /var/www && \
