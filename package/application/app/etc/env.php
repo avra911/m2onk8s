@@ -56,4 +56,38 @@ return array (
     'config_webservice' => 1,
     'compiled_config' => 1,
   ),
+  'cache' => [
+    'frontend' => [
+      'default' => [
+        'backend' => [
+          'server' => $_ENV['CACHE_SERVER'],
+          'port' => $_ENV['CACHE_PORT'],
+          'persistent' => '',
+          'database' => '1',
+          'force_standalone' => '0',
+          'connect_retries' => $_ENV['CACHE_CONNECT_RETRIES'],
+          'read_timeout' => $_ENV['CACHE_READ_TIMEOUT'],
+          'automatic_cleaning_factor' => '0',
+          'compress_data' => '1',
+          'compress_tags' => '1',
+          'compress_threshold' => '20480',
+          'compression_lib' => 'gzip'
+        ],
+      'page_cache' => [
+         'server' => $_ENV['CACHE_SERVER'],
+         'port' => $_ENV['CACHE_PORT'],
+         'persistent' => '',
+         'database' => '2',
+         'force_standalone' => '0',
+         'connect_retries' => $_ENV['CACHE_CONNECT_RETRIES'],
+         'read_timeout' => $_ENV['CACHE_READ_TIMEOUT'],
+         'automatic_cleaning_factor' => '0',
+         'compress_data' => '1',
+         'compress_tags' => '1',
+         'compress_threshold' => '20480',
+         'compression_lib' => 'gzip'
+        ]
+      ]
+    ]
+  ]
 );
