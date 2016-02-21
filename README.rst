@@ -23,7 +23,7 @@ Scope
 The goal of this project is to see what infrastructure is required to get Magento 2 to run efficiently on Kubernetes. For this, we'll be working on:
   - [DONE] Setting up the PHP container
   - [DONE] Setting up the NGINX container
-  - [Todo] Setting up the REDIS container for sesions, cache
+  - [DONE] Setting up the REDIS container for sesions, cache
   - [Todo] Set up Varnish
   - [Todo] Setting up the required volumes for media, etc. 
   - [Todo] Exfiling logs via the Kubernetes log handler for PHP, NGINX and Magento
