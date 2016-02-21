@@ -13,8 +13,8 @@ GID_WWW_DATA := 33
 UID_OWNER    := $(shell id -u `whoami`)
 GID_OWNER    := $(shell id -g `whoami`)
 
-PATH_APPLICATION         := application
-PATH_BUILD_CONFIGURATION := build
+PATH_APPLICATION         := $(shell pwd)/application
+PATH_BUILD_CONFIGURATION := $(shell pwd)/build
 PATH_ARTIFACTS           := $(PATH_BUILD_CONFIGURATION)/artifacts
 
 # Guards
@@ -82,7 +82,8 @@ destroy-infrastructure: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZO
 pack-application:
 	# Needs root to set user
 	- sudo rm $(PATH_ARTIFACTS)/application.tar.gz
-	sudo tar -cvzf $(PATH_ARTIFACTS)/application.tar.gz $(PATH_APPLICATION) \
+	cd $(PATH_APPLICATION) && \
+	sudo tar -cvzf $(PATH_ARTIFACTS)/application.tar.gz ./* \
 	    --owner=$(UID_WWW_DATA) \
 	    --group=$(GID_WWW_DATA)
 
