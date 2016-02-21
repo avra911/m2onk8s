@@ -1,49 +1,46 @@
 <?php
 return array (
-  'backend' => 
+  'backend' =>
   array (
     'frontName' => $_ENV['ADMIN_PANEL_PATH'],
   ),
-  'install' => 
+  'install' =>
   array (
     'date' => 'Fri, 22 Jan 2016 11:46:19 +0000',
   ),
-  'crypt' => 
+  'crypt' =>
   array (
     'key' => $_ENV['CRYPT_KEY'],
   ),
-  'session' => 
+  'session' =>
   array (
-    'save' => 'files',
-  ),
-  'db' => 
+    'save' => $_ENV['SESSION_SAVE_TYPE'],
+    'save_path' => $ENV['SESSION_SAVE_PATH']
+   ),
+  'db' =>
   array (
     'table_prefix' => '',
-    'connection' => 
+    'connection' =>
     array (
-      'default' => 
+      'default' =>
       array (
         'host' => $_ENV['DATABASE_HOST'],
         'dbname' => $_ENV['DATABASE_NAME'],
         'username' => $_ENV['DATABASE_USERNAME'],
         'password' => $_ENV['DATABASE_PASSWORD'],
-        'model' => 'mysql4',
-        'engine' => 'innodb',
-        'initStatements' => 'SET NAMES utf8;',
-        'active' => '1',
       ),
     ),
   ),
-  'resource' => 
+  'resource' =>
   array (
-    'default_setup' => 
+    'default_setup' =>
     array (
       'connection' => 'default',
     ),
   ),
   'x-frame-options' => 'SAMEORIGIN',
-  'MAGE_MODE' => 'default',
-  'cache_types' => 
+  'MAGE_MODE' => 'production',
+  'cache_types' =>
   array (
     'config' => 1,
     'layout' => 1,

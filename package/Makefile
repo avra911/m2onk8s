@@ -1,9 +1,25 @@
-#Make script that builds and deploy the Magento files
+# Make script that builds and deploy the Magento files
+
+# Variables
+# ---------
 
 SHELL := /bin/bash
 PROJECT_NS := m2onk8s
 CONTAINER_NS := m2onk8s
 GIT_HASH := $(shell git rev-parse --short HEAD)
+
+UID_WWW_DATA := 33
+GID_WWW_DATA := 33
+
+UID_OWNER    := $(shell id -u `whoami`)
+GID_OWNER    := $(shell id -g `whoami`)
+
+PATH_APPLICATION         := $(shell pwd)/application
+PATH_BUILD_CONFIGURATION := $(shell pwd)/build
+PATH_ARTIFACTS           := $(PATH_BUILD_CONFIGURATION)/artifacts
+
+# Guards
+# ------
 
 # General method that checks for required environment variables. See http://stackoverflow.com/questions/4728810/makefile-variable-as-prerequisite
 guard-env-%:
@@ -32,6 +48,7 @@ deploy: guard-env-ENVIRONMENT
 	echo "This is a stub method. It does nothing, yet"
 
 # Infrastructure
+# --------------
 
 create-instances: guard-env-ENVIRONMENT guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud
 	gcloud container clusters create \
@@ -60,15 +77,32 @@ destroy-infrastructure: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZO
 	    --wait \
 	    m2onk8s
 
-build-application-web: guard-changes guard-cmd-composer
+# Artifact Generation
+# -------------------
+
+pack-application:
+	# Needs root to set user
+	- sudo rm $(PATH_ARTIFACTS)/application.tar.gz
+	cd $(PATH_APPLICATION) && \
+	sudo tar -cvzf $(PATH_ARTIFACTS)/application.tar.gz ./* \
+	    --owner=$(UID_WWW_DATA) \
+	    --group=$(GID_WWW_DATA)
+
+pack-static-assets:
+	# Needs root to set user
+	- sudo rm $(PATH_ARTIFACTS)/static.tar.gz
+	cd $(PATH_APPLICATION) && \
+	sudo tar -cvzf $(PATH_ARTIFACTS)/static.tar.gz pub \
+	    --owner=1000 \
+	    --group=1000
+
+# Todo: merge with build-application-php, swap with "compile-application" - There's no web or other.
+compile-application: guard-changes guard-cmd-composer
 	# Implied that grunt exists. Jerk grunt returns a "99" status code with grunt -v.
 	cd application && composer install --ignore-platform-reqs --optimize-autoloader --no-dev
 	cd application && npm install
 	cd application && grunt install
 
-build-application-pod: guard-changes create-container-nginx create-container-php
-
-build-application-php:
 	# The code generation bit
 	rm -rf application/var/di
 	php application/bin/magento setup:di:compile
@@ -85,28 +119,34 @@ build-application-php:
 
 	# The static content bit? I don't know. 
 	php application/bin/magento setup:static-content:deploy
+
 # Sending the build context to the docker daemon each time is going to get super annoying. It's like, 1.1gb 
 # at the moment.
-build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT
-	docker build -t ${CONTAINER_NS}/nginx:${GIT_HASH} -f build/docker/nginx/Dockerfile .
+build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT pack-static-assets
+	docker build -t ${CONTAINER_NS}/nginx:${GIT_HASH} -f build/docker/nginx/Dockerfile . 
 	docker tag ${CONTAINER_NS}/nginx:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
 
 build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
-	docker build -t ${CONTAINER_NS}/php:$(git rev-parse --short HEAD) -f build/docker/php/Dockerfile .
-	docker tag ${CONTAINER_NS}/php:$(git rev-parse --short HEAD) gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
+	sudo docker build -t ${CONTAINER_NS}/php:${GIT_HASH} -f build/docker/php/Dockerfile $(PATH_BUILD_CONFIGURATION) 
+	docker tag ${CONTAINER_NS}/php:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
+
+# Artifact deployment
+# ---------------------
 
 push-magento:
 	kubectl replace -f build/kubernetes/magento.yml
 
-install-application:
+# Development Tasks
+# -----------------
+
+mock-runtime-env:
 	# This should only be used in dev. If this Makefile hits prod, I'll be super unhappy with you (not really. But it's a bad idea)
 	# Also, yes there are passwords below, yes I know it's never a good idea, but rest assured, they've never been used before or will be again.
+	docker run --name=mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d -p 3306:3306  mysql/mysql-server:5.7 
 	php application/bin/magento setup:install --db-host=127.0.0.1 --db-name=magento2 --db-user=root --db-password=my-secret-pw --admin-user="User" --admin-firstname=User --admin-lastname=atexampledotcom --admin-email=user@example.com --admin-password=10spaceship
-	
-
-make clean:
+clean:
 	# Delete application build
 	rm -rf application/vendor
 	rm -rf application/node_modules

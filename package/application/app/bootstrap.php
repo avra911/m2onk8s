@@ -9,6 +9,7 @@
  */
 error_reporting(E_ALL);
 #ini_set('display_errors', 1);
+
 umask(0);
 
 /* PHP version validation */
@@ -42,8 +43,9 @@ if (!empty($_SERVER['MAGE_PROFILER'])
     );
 }
 
-date_default_timezone_set('UTC');
-
-// Initialise environment variables
-$dotenv = new Dotenv\Dotenv('/etc/magento/');
+$dotenv = new \Dotenv\Dotenv('/etc/magento');
 $dotenv->load();
+
+
+
+date_default_timezone_set('UTC');

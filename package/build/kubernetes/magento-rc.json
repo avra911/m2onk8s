@@ -2,7 +2,7 @@
     "apiVersion": "v1",
     "kind": "ReplicationController",
     "metadata": {
-        "name": "magento",
+        "name": "magento-c391d15",
         "labels": {
             "app": "magento",
             "tier": "frontend"
@@ -34,7 +34,7 @@
                 "containers": [
                     {
                         "name": "magento",
-                        "image": "gcr.io/m2onk8s/php:b7f193e",
+                        "image": "gcr.io/m2onk8s/php:c391d15",
                         "ports": [
                             {
                                 "containerPort": 9000
@@ -45,18 +45,6 @@
                                 "name": "etcmagento",
                                 "readOnly": true,
                                 "mountPath": "/etc/magento"
-                            }
-                        ]
-                    },
-                    {
-                        "name": "nginx",
-                        "image": "gcr.io/m2onk8s/nginx:167df6e",
-                        "ports": [
-                            {
-                                "containerPort": 80
-                            },
-                            {
-                                "containerPort": 443
                             }
                         ]
                     }

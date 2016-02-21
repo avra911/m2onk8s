@@ -11,14 +11,12 @@
     "spec": {
         "ports": [
             {
-                "port": 80
+                "port": 9000 
             }
         ],
         "selector": {
             "app": "magento",
             "tier": "frontend"
-        },
-        "type": "LoadBalancer",
-        "loadBalancerIP": "104.199.147.12"
+        }
     }
 }
