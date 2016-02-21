@@ -88,13 +88,12 @@ pack-application:
 	    --group=$(GID_WWW_DATA)
 
 # Todo: merge with build-application-php, swap with "compile-application" - There's no web or other.
-build-application-web: guard-changes guard-cmd-composer
+compile-application: guard-changes guard-cmd-composer
 	# Implied that grunt exists. Jerk grunt returns a "99" status code with grunt -v.
 	cd application && composer install --ignore-platform-reqs --optimize-autoloader --no-dev
 	cd application && npm install
 	cd application && grunt install
 
-build-application-php:
 	# The code generation bit
 	rm -rf application/var/di
 	php application/bin/magento setup:di:compile
