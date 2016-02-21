@@ -52,6 +52,10 @@ RUN echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list &&
 CMD php-fpm7.0
 
 # Todo: Adding the entire dir is a disaster. Let's only add the things that we need to
+#       It looks like this isn't possible with just the "Add" command. Might have to add 
+#       a tarball that's been constructed (this might also solve some of the size issues
+#       with chown? 
 ADD application /var/www/
+RUN chown -R www-data:www-data /var/www
 
 VOLUME ["/etc/magento"]
