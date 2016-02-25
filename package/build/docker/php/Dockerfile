@@ -48,7 +48,7 @@ RUN echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list &&
     mkdir /var/www && \
     chown www-data:www-data /var/www 
 
-VOLUME ["/etc/magento"]
+VOLUME ["/etc/magento", "/var/www/media/"]
 CMD php-fpm7.0
 
 # Todo: Adding the entire dir is a disaster. Let's only add the things that we need to

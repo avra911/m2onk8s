@@ -18,7 +18,10 @@ PATH_APPLICATION         := $(shell pwd)/application
 PATH_BUILD_CONFIGURATION := $(shell pwd)/build
 PATH_ARTIFACTS           := $(PATH_BUILD_CONFIGURATION)/artifacts
 
-SECRET_MAGENTO := $(shell base64 -w 0 build/secrets/.env)
+SECRET_MAGENTO    := $(shell base64 -w 0 build/secrets/.env)
+SECRET_CERT       := $(shell base64 -w 0 build/secrets/cert.pem)
+SECRET_FULL_CHAIN := $(shell base64 -w 0 build/secrets/fullchain.pem)
+SECRET_PRIVKEY    := $(shell base64 -w 0 build/secrets/privkey.pem)
 
 # Guards
 # ------
@@ -142,8 +145,11 @@ build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
 push-magento:
 	sed "s/{{GIT_HASH}}/$(GIT_HASH)/" build/kubernetes/magento-rc.json | kubectl create -f -
 
-push-secret: 
+push-secret-magento: 
 	sed "s/{{BASE_64}}/$(SECRET_MAGENTO)/" build/kubernetes/magento-secret.json | kubectl replace -f - 
+
+push-secret-nginx:
+	sed "s/{{CERT}}/$(SECRET_CERT)/" build/kubernetes/nginx-secret.json | sed -e "s/{{FULL_CHAIN}}/$(SECRET_FULL_CHAIN)/" | sed -e "s/{{PRIVKEY}}/$(SECRET_PRIVKEY)/" | kubectl replace -f - 
 
 # Development Tasks
 # -----------------
