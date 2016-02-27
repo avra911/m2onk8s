@@ -1,8 +1,11 @@
-# IDE Files\
+# IDE Files
 .idea
 
 # ENV
 .env
+
+# TLS Keys
+*.pem
 
 # Generated Files
 package/application/node_modules
