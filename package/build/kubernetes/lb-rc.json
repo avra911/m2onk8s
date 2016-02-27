@@ -23,6 +23,14 @@
                 }
             },
             "spec": {
+                "volumes": [
+                    {
+                        "name": "etcssl",
+                        "secret": {
+                            "secretName": "ssl-certificates"
+                        }
+                    }
+                ],
                 "containers": [
                     {
                         "name": "nginx",
@@ -33,6 +41,13 @@
                             },
                             {
                                 "containerPort": 443
+                            }
+                        ],
+                        "volumeMounts": [
+                            {
+                                "name": "etcssl",
+                                "readOnly": true,
+                                "mountPath": "/etc/ssl"
                             }
                         ]
                     }
