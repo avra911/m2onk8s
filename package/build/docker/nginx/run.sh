@@ -6,4 +6,4 @@ echo "nameserver 127.0.0.1" > /etc/resolv.conf
 cat /etc/resolv.conf > /proc/self/fd/1
 
 # [CMD]
-nginx -g "deamon off;"
+nginx -g "daemon off;"
