@@ -50,10 +50,6 @@
                                 "mountPath": "/etc/ssl"
                             }
                         ]
-                    },
-                    {
-                        "name": "go-dnsmasq",
-                        "image": "janeczku/go-dnsmasq"
                     }
                 ]
             }
