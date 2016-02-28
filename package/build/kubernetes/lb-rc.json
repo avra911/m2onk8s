@@ -52,8 +52,8 @@
                         ]
                     },
                     {
-                        "name": "dnsmasq",
-                        "image": "gcr.io/m2onk8s/dnsmasq:{{GIT_HASH}}"
+                        "name": "go-dnsmasq",
+                        "image": "janeczku/go-dnsmasq"
                     }
                 ]
             }
