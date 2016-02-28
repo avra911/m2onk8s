@@ -8,6 +8,9 @@
 FROM littlemanco/nginx:1.9.12-1
 MAINTAINER <support@littleman.co>
 
+# ADD bash script
+ADD /build/docker/nginx/run.sh run.sh
+
 # ADD Configuration
 ADD /etc/nginx/site.conf /etc/nginx/sites-enabled/site.conf
 ADD /build/artifacts/static.tar.gz /var/www/
@@ -22,6 +25,7 @@ VOLUME ["/var/www/pub/media/", "/etc/ssl"]
 #   easy as possible, and that means "wide open defaults".
 
 RUN rm /etc/nginx/sites-enabled/default
+CMD ./run.sh
 
 EXPOSE 80
 EXPOSE 443

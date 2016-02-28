@@ -50,6 +50,10 @@
                                 "mountPath": "/etc/ssl"
                             }
                         ]
+                    },
+                    {
+                        "name": "dnsmasq",
+                        "image": "gcr.io/m2onk8s/dnsmasq:{{GIT_HASH}}"
                     }
                 ]
             }

@@ -127,6 +127,11 @@ compile-application: guard-changes guard-cmd-composer
 
 # Sending the build context to the docker daemon each time is going to get super annoying. It's like, 1.1gb 
 # at the moment.
+build-container-%: guard-env-GOOGLE_CLOUD_PROJECT
+	docker build -t ${CONTAINER_NS}/$*:${GIT_HASH} -f build/docker/$*/Dockerfile .
+	docker tag ${CONTAINER_NS}/$*:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/$*:${GIT_HASH}
+	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/$*:${GIT_HASH}
+
 build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT pack-static-assets
 	docker build -t ${CONTAINER_NS}/nginx:${GIT_HASH} -f build/docker/nginx/Dockerfile . 
 	docker tag ${CONTAINER_NS}/nginx:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
