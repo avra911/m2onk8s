@@ -1,12 +1,25 @@
 # Make script that builds and deploy the Magento files
 
+# Make configuration
+# ------------------
+.PHONY: help
+
 # Variables
 # ---------
 
-SHELL := /bin/bash
+.DEFAULT_GOAL := help
+SHELL         := /bin/bash
+
 PROJECT_NS := m2onk8s
 CONTAINER_NS := m2onk8s
 GIT_HASH := $(shell git rev-parse --short HEAD)
+
+ANSI_TITLE        := '\e[1;32m'
+ANSI_CMD          := '\e[0;32m'
+ANSI_TITLE        := '\e[0;33m'
+ANSI_SUBTITLE     := '\e[0;37m'
+ANSI_WARNING      := '\e[1;31m'
+ANSI_OFF          := '\e[0m'
 
 UID_WWW_DATA := 33
 GID_WWW_DATA := 33
@@ -22,6 +35,17 @@ SECRET_MAGENTO    := $(shell base64 -w 0 build/secrets/.env)
 SECRET_CERT       := $(shell base64 -w 0 build/secrets/cert.pem)
 SECRET_FULL_CHAIN := $(shell base64 -w 0 build/secrets/fullchain.pem)
 SECRET_PRIVKEY    := $(shell base64 -w 0 build/secrets/privkey.pem)
+
+# Help
+# ----
+
+help: ## Show this menu 
+	@echo -e $(ANSI_TITLE)m2onk8s$(ANSI_OFF)$(ANSI_SUBTITLE) - An experiment running Magento 2 on Kubernetes \(with Google Cloud\)$(ANSI_OFF)
+	@echo -e "\n"$(ANSI_WARNING)Warning:$(ANSI_OFF) "This is not yet production ready. It probably doesn't even work! When it hits a release, you're OK.\n"
+	@echo -e $(ANSI_TITLE)Requirements:$(ANSI_OFF)
+	@echo -e "    "$(ANSI_TITLE)Binaries:$(ANSI_OFF) bash docker gcloud git kubectl tar"\n"
+	@echo -e $(ANSI_TITLE)Commands:$(ANSI_OFF)
+	@grep -E '^[a-zA-Z_-%]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "    \033[32m%-30s\033[0m %s\n", $$1, $$2}'
 
 # Guards
 # ------
@@ -49,13 +73,11 @@ guard-changes:
 	    exit 1; \
 	fi
 
-deploy: guard-env-ENVIRONMENT
-	echo "This is a stub method. It does nothing, yet"
-
 # Infrastructure
 # --------------
 
-create-instances: guard-env-ENVIRONMENT guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud
+## Creates the Kubernetes cluster necessary to run m2onk8s
+provision-kubernetes-cluster: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud ## Creates a Kubernetes cluster on Google Cloud
 	gcloud container clusters create \
 	    --project=$(GOOGLE_CLOUD_PROJECT) \
 	    --enable-cloud-logging \
@@ -66,16 +88,16 @@ create-instances: guard-env-ENVIRONMENT guard-env-GOOGLE_CLOUD_PROJECT guard-env
 	    --zone=$(GOOGLE_CLOUD_ZONE) \
 	    m2onk8s
 
-create-sql: guard-env-GOOGLE_CLOUD_ZONE
+provision-sql: guard-env-GOOGLE_CLOUD_ZONE ## Create an SQL instance on Google Cloud
 	gcloud sql instances create \
 	    --assign-ip \
 	    --backup \
 	    --require-ssl \
 	    m2onk8s
 
-create-infrastructure: create-instances create-sql
+provision-everything: create-instances create-sql ## Create all the necessary resources for Google Cloud
 
-destroy-infrastructure: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud
+destroy-infrastructure: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud ## [BROKEN] Deletes the infrastructure created by other provisioning tasks
 	gcloud container clusters delete \
 	    --project=$(GOOGLE_CLOUD_PROJECT) \
 	    --quiet \
@@ -85,7 +107,7 @@ destroy-infrastructure: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZO
 # Artifact Generation
 # -------------------
 
-pack-application:
+pack-application: ## Packs the application in a .tar.gz file for consumption by the Docker daemon
 	# Needs root to set user
 	- sudo rm $(PATH_ARTIFACTS)/application.tar.gz
 	cd $(PATH_APPLICATION) && \
@@ -93,7 +115,7 @@ pack-application:
 	    --owner=$(UID_WWW_DATA) \
 	    --group=$(GID_WWW_DATA)
 
-pack-static-assets:
+pack-static-assets: ## Packs the static assets in a .tar.gz file for consumption by the Docker daemon
 	# Needs root to set user
 	- sudo rm $(PATH_ARTIFACTS)/static.tar.gz
 	cd $(PATH_APPLICATION) && \
@@ -101,8 +123,62 @@ pack-static-assets:
 	    --owner=1000 \
 	    --group=1000
 
+build-container-%: guard-env-GOOGLE_CLOUD_PROJECT ## (% = nginx|php) - Builds, tags and pushes a container to Google Cloud
+	docker build -t ${CONTAINER_NS}/$*:${GIT_HASH} -f build/docker/$*/Dockerfile .
+	docker tag ${CONTAINER_NS}/$*:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/$*:${GIT_HASH}
+	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/$*:${GIT_HASH}
+
+build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT pack-static-assets
+	docker build -t ${CONTAINER_NS}/nginx:${GIT_HASH} -f build/docker/nginx/Dockerfile . 
+	docker tag ${CONTAINER_NS}/nginx:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
+	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
+
+build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
+	# Unfortunately, as we're tar-ing the archive Docker doesn't seem to pick up filesystem changes, and invalidate the appropraite image
+	# caches. So, we're never using one.
+	sudo docker build --no-cache -t ${CONTAINER_NS}/php:${GIT_HASH} -f build/docker/php/Dockerfile $(PATH_BUILD_CONFIGURATION) 
+	docker tag ${CONTAINER_NS}/php:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
+	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
+
+# Artifact deployment
+# ---------------------
+
+push-magento: ## Pushes an update to the Magento RC to Kubernetes
+	sed "s/{{GIT_HASH}}/$(GIT_HASH)/" build/kubernetes/magento-rc.json | kubectl create -f -
+
+push-nginx: ## Pushes an update to NGINX to Kubernetes
+	sed "s/{{GIT_HASH}}/$(GIT_HASH)/" build/kubernetes/lb-rc.json | kubectl create -f -
+
+push-secret-magento: ## Pushes an update to the Magento secret to Kubernetes
+	sed "s/{{BASE_64}}/$(SECRET_MAGENTO)/" build/kubernetes/magento-secret.json | kubectl replace -f - 
+
+push-secret-nginx: ## Pushes an update to the NGINX secret to Kubernetes
+	sed "s/{{CERT}}/$(SECRET_CERT)/" build/kubernetes/nginx-secret.json | sed -e "s/{{FULL_CHAIN}}/$(SECRET_FULL_CHAIN)/" | sed -e "s/{{PRIVKEY}}/$(SECRET_PRIVKEY)/" | kubectl replace -f - 
+
+# Development Tasks
+# -----------------
+
+mock-runtime-env: ## Creates the necessary containers required for local development
+
+	# This should only be used in dev. If this Makefile hits prod, I'll be super unhappy with you (not really. But it's a bad idea)
+	# Also, yes there are passwords below, yes I know it's never a good idea, but rest assured, they've never been used before or will be again.
+	docker run --name=mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d -p 3306:3306  mysql/mysql-server:5.7 
+	php application/bin/magento setup:install --db-host=127.0.0.1 --db-name=magento2 --db-user=root --db-password=my-secret-pw --admin-user="User" --admin-firstname=User --admin-lastname=atexampledotcom --admin-email=user@example.com --admin-password=10spaceship
+
+clean: ## Delete everything to start again
+	# Delete application build
+	rm -rf application/vendor
+	rm -rf application/node_modules
+
+	# Delete application cache
+	rm -rf application/var/composer_home/
+	rm -rf application/var/generation/
+
+# Application Compilation
+# -----------------------
+
 # Todo: merge with build-application-php, swap with "compile-application" - There's no web or other.
-compile-application: guard-changes guard-cmd-composer
+compile-application: guard-changes guard-cmd-composer ## Installs all of the depenencies reqired with the various package managers
 	# Implied that grunt exists. Jerk grunt returns a "99" status code with grunt -v.
 	cd application && composer install --ignore-platform-reqs --optimize-autoloader --no-dev
 	cd application && npm install
@@ -125,53 +201,4 @@ compile-application: guard-changes guard-cmd-composer
 	# The static content bit? I don't know. 
 	php application/bin/magento setup:static-content:deploy
 
-# Sending the build context to the docker daemon each time is going to get super annoying. It's like, 1.1gb 
-# at the moment.
-build-container-%: guard-env-GOOGLE_CLOUD_PROJECT
-	docker build -t ${CONTAINER_NS}/$*:${GIT_HASH} -f build/docker/$*/Dockerfile .
-	docker tag ${CONTAINER_NS}/$*:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/$*:${GIT_HASH}
-	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/$*:${GIT_HASH}
 
-build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT pack-static-assets
-	docker build -t ${CONTAINER_NS}/nginx:${GIT_HASH} -f build/docker/nginx/Dockerfile . 
-	docker tag ${CONTAINER_NS}/nginx:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
-	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
-
-build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
-	# Unfortunately, as we're tar-ing the archive Docker doesn't seem to pick up filesystem changes, and invalidate the appropraite image
-	# caches. So, we're never using one.
-	sudo docker build --no-cache -t ${CONTAINER_NS}/php:${GIT_HASH} -f build/docker/php/Dockerfile $(PATH_BUILD_CONFIGURATION) 
-	docker tag ${CONTAINER_NS}/php:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
-	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
-
-# Artifact deployment
-# ---------------------
-
-push-magento:
-	sed "s/{{GIT_HASH}}/$(GIT_HASH)/" build/kubernetes/magento-rc.json | kubectl create -f -
-
-push-nginx:
-	sed "s/{{GIT_HASH}}/$(GIT_HASH)/" build/kubernetes/lb-rc.json | kubectl create -f -
-
-push-secret-magento: 
-	sed "s/{{BASE_64}}/$(SECRET_MAGENTO)/" build/kubernetes/magento-secret.json | kubectl replace -f - 
-
-push-secret-nginx:
-	sed "s/{{CERT}}/$(SECRET_CERT)/" build/kubernetes/nginx-secret.json | sed -e "s/{{FULL_CHAIN}}/$(SECRET_FULL_CHAIN)/" | sed -e "s/{{PRIVKEY}}/$(SECRET_PRIVKEY)/" | kubectl replace -f - 
-
-# Development Tasks
-# -----------------
-
-mock-runtime-env:
-	# This should only be used in dev. If this Makefile hits prod, I'll be super unhappy with you (not really. But it's a bad idea)
-	# Also, yes there are passwords below, yes I know it's never a good idea, but rest assured, they've never been used before or will be again.
-	docker run --name=mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d -p 3306:3306  mysql/mysql-server:5.7 
-	php application/bin/magento setup:install --db-host=127.0.0.1 --db-name=magento2 --db-user=root --db-password=my-secret-pw --admin-user="User" --admin-firstname=User --admin-lastname=atexampledotcom --admin-email=user@example.com --admin-password=10spaceship
-clean:
-	# Delete application build
-	rm -rf application/vendor
-	rm -rf application/node_modules
-
-	# Delete application cache
-	rm -rf application/var/composer_home/
-	rm -rf application/var/generation/
