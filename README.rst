@@ -1,13 +1,15 @@
+===============
 Project Outline
-----------------
+===============
 
 *** WARNING *** - Though this is intended to be "production worthy" as soon as possible, it's never going to be tested
 in a production environment.
 
 - Please, point out things that are wrong with it. I am building this as a reference
+- Also, this recently got a bunch more "serious". It's now working, give or take, and I'm improving the design. 
 
 Project Goals
-`````````````
+-------------
 Magento 2 is a rewrite of the Magento e-commerce platform in PHP. Kubernetes is a container management solution created
 by Google (I think, at least) to orchestrate the deployment and life cycle of containerized applications. I initially
 intended to write a guide up about "how this works", but that proved too much of a burden. Instead, I just got it up
@@ -16,7 +18,6 @@ write documentation by way of answer.
 
 P.S. Kubernetes is so cool.
 
-```````
 ============= ============ ==============
 License       Code Style   Code Locale
 ------------- ------------ --------------
@@ -24,7 +25,7 @@ MIT           PSR-2        en-AU [lang]_
 ============= ============ ==============
 
 Scope
-`````
+-----
 The goal of this project is to see what infrastructure is required to get Magento 2 to run efficiently on Kubernetes.
 For this, we'll be working on:
   - [Todo] Set up Varnish
@@ -32,23 +33,31 @@ For this, we'll be working on:
   - [Todo] Exfiling logs via the Kubernetes log handler for PHP, NGINX and Magento
   - [Wishlist] Kill containers randomly, with increasing chance as they reach {n} life.
 
-Compatibility
-`````````````
-Magento  Compatibility
+Definitions
+-----------
 
-======
- 2.0.1 
-------
-   Y 
-======
+===================== ===================================================================================
+Word                  Meaning
+--------------------- -----------------------------------------------------------------------------------
+Artifact              The deployable unit that goes into a Kubernetes pod. Probably a docker container
+Package               A tarball of some series of files that goes into an artifact
+===================== ===================================================================================
+
+Magento  Compatibility
+----------------------
+This should *always* be running the latest version of Magento. If the most recent version of Magneto is broken, this is broken. 
+Further, I don't care about older builds. I'm trying to get into the habit of always working based off the most recent versions
+of all dependencies. 
 
 Usage
 -----
+.. Code::bash
 
-Take a look at the Makefile for the various common tasks that you're likely to require. If you're looking for specific
-instructions, lodge an issue and I'll write some up. I won't answer questions directly - Instead, I'll amend the
-documentation and ask you if you can derive your answer from that! In this way, we'll build a reference others can
-look at without
+    $ make
+
+That should give you a list of the current things the project can do. If you're looking for additional help for something in 
+particular I'll comment that section of the build more heavily (or, at worst, write documentation). I try not to answer questions
+directly. 
 
 Contributing
 ------------
