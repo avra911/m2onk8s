@@ -4,7 +4,7 @@
     "metadata": {
         "name": "loadbalancer",
         "labels": {
-            "app": "nginx",
+            "app": "lb",
             "tier": "frontend"
         }
     },
@@ -20,7 +20,7 @@
             }
         ],
         "selector": {
-            "app": "nginx",
+            "app": "lb",
             "tier": "frontend"
         },
         "type": "LoadBalancer",

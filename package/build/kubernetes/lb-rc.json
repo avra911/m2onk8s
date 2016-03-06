@@ -4,21 +4,21 @@
     "metadata": {
         "name": "lb-{{GIT_HASH}}",
         "labels": {
-            "app": "nginx",
+            "app": "lb",
             "tier": "frontend"
         }
     },
     "spec": {
         "replicas": 1,
         "selector": {
-            "app": "nginx",
+            "app": "lb",
             "tier": "frontend"
         },
         "template": {
             "metadata": {
                 "labels": {
                     "name": "lb",
-                    "app": "nginx",
+                    "app": "lb",
                     "tier": "frontend"
                 }
             },
@@ -33,8 +33,8 @@
                 ],
                 "containers": [
                     {
-                        "name": "nginx",
-                        "image": "gcr.io/m2onk8s/nginx:{{GIT_HASH}}",
+                        "name": "lb",
+                        "image": "gcr.io/m2onk8s/lb:{{GIT_HASH}}",
                         "ports": [
                             {
                                 "containerPort": 80
