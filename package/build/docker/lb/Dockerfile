@@ -10,7 +10,7 @@ MAINTAINER <support@littleman.co>
 
 # ADD Configuration
 ADD /etc/nginx/site.conf /etc/nginx/sites-enabled/site.conf
-ADD /build/artifacts/static.tar.gz /var/www/
+ADD {{PATH_PACKAGES}}/lb-{{GIT_HASH}}.tar.gz /var/www/
 
 # Media dir will be mounted on Google Cloud Storage
 VOLUME ["/var/www/pub/media/", "/etc/ssl"]
