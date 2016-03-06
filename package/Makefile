@@ -30,6 +30,7 @@ GID_OWNER    := $(shell id -g `whoami`)
 PATH_APPLICATION         := $(shell pwd)/application
 PATH_BUILD_CONFIGURATION := $(shell pwd)/build
 PATH_ARTIFACTS           := $(PATH_BUILD_CONFIGURATION)/artifacts
+PATH_PACKAGES            := $(PATH_BUILD_CONFIGURATION)/packages
 
 SECRET_MAGENTO    := $(shell base64 -w 0 build/secrets/.env)
 SECRET_CERT       := $(shell base64 -w 0 build/secrets/cert.pem)
@@ -45,7 +46,7 @@ help: ## Show this menu
 	@echo -e $(ANSI_TITLE)Requirements:$(ANSI_OFF)
 	@echo -e "    "$(ANSI_TITLE)Binaries:$(ANSI_OFF) bash docker gcloud git kubectl tar"\n"
 	@echo -e $(ANSI_TITLE)Commands:$(ANSI_OFF)
-	@grep -E '^[a-zA-Z_-%]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "    \033[32m%-30s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z _-%]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "    \033[32m%-30s\033[0m %s\n", $$1, $$2}'
 
 # Guards
 # ------
@@ -109,51 +110,61 @@ destroy-infrastructure: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZO
 
 pack-application: ## Packs the application in a .tar.gz file for consumption by the Docker daemon
 	# Needs root to set user
-	- sudo rm $(PATH_ARTIFACTS)/application.tar.gz
+	# test ! -f $(PATH_APPLICATION/application-$(GIT_HASH).tar.gz && \
 	cd $(PATH_APPLICATION) && \
-	sudo tar -cvzf $(PATH_ARTIFACTS)/application.tar.gz ./* \
+	sudo tar -cvzf $(PATH_PACKAGES)/application-$(GIT_HASH).tar.gz ./* \
 	    --owner=$(UID_WWW_DATA) \
 	    --group=$(GID_WWW_DATA)
 
-pack-static-assets: ## Packs the static assets in a .tar.gz file for consumption by the Docker daemon
+pack-lb: ## Packs the static assets in a .tar.gz file for consumption by the Docker daemon
 	# Needs root to set user
-	- sudo rm $(PATH_ARTIFACTS)/static.tar.gz
+	test ! -f $(PATH_PACKAGES)/lb-$(GIT_HASH).tar.gz && \
 	cd $(PATH_APPLICATION) && \
-	sudo tar -cvzf $(PATH_ARTIFACTS)/static.tar.gz pub \
+	sudo tar -cvzf $(PATH_PACKAGES)/lb-$(GIT_HASH).tar.gz pub \
 	    --owner=1000 \
 	    --group=1000
+ 
+# Container Generation
+# --------------------
 
-build-container-%: guard-env-GOOGLE_CLOUD_PROJECT ## (% = nginx|php) - Builds, tags and pushes a container to Google Cloud
-	docker build -t ${CONTAINER_NS}/$*:${GIT_HASH} -f build/docker/$*/Dockerfile .
+container-%: guard-env-GOOGLE_CLOUD_PROJECT ## Builds & tags a given container
+	- make pack-$*
+	
+	# Move the dockerfile to the project root
+	cat build/docker/$*/Dockerfile > Dockerfile 
+	
+	# Process the dockerfile
+	sed -i "s/{{GIT_HASH}}/$(GIT_HASH)/" Dockerfile 
+	
+	# Todo: The PATH_PACKAGES variable doesn't play nice with the `sed` command. Need to figure out how to get those two together.
+	sed -i "s/{{PATH_PACKAGES}}/\/build\/packages/" Dockerfile
+
+	docker build -t ${CONTAINER_NS}/$*:${GIT_HASH} . 
+
+	rm Dockerfile
+
 	docker tag ${CONTAINER_NS}/$*:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/$*:${GIT_HASH}
-	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/$*:${GIT_HASH}
-
-build-container-nginx: guard-env-GOOGLE_CLOUD_PROJECT pack-static-assets
-	docker build -t ${CONTAINER_NS}/nginx:${GIT_HASH} -f build/docker/nginx/Dockerfile . 
-	docker tag ${CONTAINER_NS}/nginx:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
-	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/nginx:${GIT_HASH}
-
-build-container-php: guard-env-GOOGLE_CLOUD_PROJECT
-	# Unfortunately, as we're tar-ing the archive Docker doesn't seem to pick up filesystem changes, and invalidate the appropraite image
-	# caches. So, we're never using one.
-	sudo docker build --no-cache -t ${CONTAINER_NS}/php:${GIT_HASH} -f build/docker/php/Dockerfile $(PATH_BUILD_CONFIGURATION) 
-	docker tag ${CONTAINER_NS}/php:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
-	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
 
 # Artifact deployment
 # ---------------------
 
-push-magento: ## Pushes an update to the Magento RC to Kubernetes
+push-c-magento: guard-env-GOOGLE_CLOUD_PROJECT ## Push the Magento container to the repo
+	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
+
+push-rc-magento: ## Pushes an update to the Magento RC to Kubernetes
 	sed "s/{{GIT_HASH}}/$(GIT_HASH)/" build/kubernetes/magento-rc.json | kubectl create -f -
 
-push-nginx: ## Pushes an update to NGINX to Kubernetes
+push-rc-nginx: ## Pushes an update to NGINX to Kubernetes
 	sed "s/{{GIT_HASH}}/$(GIT_HASH)/" build/kubernetes/lb-rc.json | kubectl create -f -
 
 push-secret-magento: ## Pushes an update to the Magento secret to Kubernetes
-	sed "s/{{BASE_64}}/$(SECRET_MAGENTO)/" build/kubernetes/magento-secret.json | kubectl replace -f - 
+	- kubectl delete secret magento-credentials
+	sed "s/{{BASE_64}}/$(SECRET_MAGENTO)/" build/kubernetes/magento-secret.json | kubectl create -f - 
 
-push-secret-nginx: ## Pushes an update to the NGINX secret to Kubernetes
-	sed "s/{{CERT}}/$(SECRET_CERT)/" build/kubernetes/nginx-secret.json | sed -e "s/{{FULL_CHAIN}}/$(SECRET_FULL_CHAIN)/" | sed -e "s/{{PRIVKEY}}/$(SECRET_PRIVKEY)/" | kubectl replace -f - 
+push-secret-lb: ## Pushes an update to the NGINX secret to Kubernetes
+	# Delete the previous resource if it exists
+	- kubectl delete secret ssl-certificates 
+	sed "s/{{CERT}}/$(SECRET_CERT)/" build/kubernetes/lb-secret.json | sed -e "s/{{FULL_CHAIN}}/$(SECRET_FULL_CHAIN)/" | sed -e "s/{{PRIVKEY}}/$(SECRET_PRIVKEY)/" | kubectl create -f - 
 
 # Development Tasks
 # -----------------
@@ -165,14 +176,22 @@ mock-runtime-env: ## Creates the necessary containers required for local develop
 	docker run --name=mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d -p 3306:3306  mysql/mysql-server:5.7 
 	php application/bin/magento setup:install --db-host=127.0.0.1 --db-name=magento2 --db-user=root --db-password=my-secret-pw --admin-user="User" --admin-firstname=User --admin-lastname=atexampledotcom --admin-email=user@example.com --admin-password=10spaceship
 
-clean: ## Delete everything to start again
+clean: clean-packages clean-docker clean-application-generation clean-application-packages ## Delete everything so you can start again
+
+clean-application-packages: ## Delete all of the vendor depependences 
 	# Delete application build
 	rm -rf application/vendor
 	rm -rf application/node_modules
 
-	# Delete application cache
+clean-application-generation: ## Delete all of Magento 2's "Generated Code"
 	rm -rf application/var/composer_home/
 	rm -rf application/var/generation/
+
+clean-packages: ## Delete all the application packages for docker
+	rm build/artifacts/*.tar.gz
+
+clean-docker: ## Delete the generated Dockerfile
+	rm Dockerfile
 
 # Application Compilation
 # -----------------------
