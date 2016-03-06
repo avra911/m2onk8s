@@ -36,12 +36,25 @@ For this, we'll be working on:
 Definitions
 -----------
 
+Build Pipeline
+``````````````
+
 ===================== ===================================================================================
 Word                  Meaning
 --------------------- -----------------------------------------------------------------------------------
 Artifact              The deployable unit that goes into a Kubernetes pod. Probably a docker container
 Package               A tarball of some series of files that goes into an artifact
 ===================== ===================================================================================
+
+Infrastructure
+``````````````
+
+====================== ====================================================================================
+Word                   Purpose
+---------------------- ------------------------------------------------------------------------------------
+lb (Load Balancer)     The entrypoint for the application. The only public facing container
+m2 (Magento 2)         The application. Accepts FastCGI responses
+====================== ====================================================================================
 
 Magento  Compatibility
 ----------------------
