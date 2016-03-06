@@ -33,6 +33,12 @@ For this, we'll be working on:
   - [Todo] Exfiling logs via the Kubernetes log handler for PHP, NGINX and Magento
   - [Wishlist] Kill containers randomly, with increasing chance as they reach {n} life.
 
+Naming Standards
+----------------
+Things are named after their purpose in the stack rather than the relevant software they use. For example, the load 
+balancer is powered by "NGINX" and there are references to "NGINX" in various places. However, it's a load balancer 
+(that also serves static assets -- A bit of a problem there). Therefore, it's called "lb" and not "NGINX".
+
 Definitions
 -----------
 
