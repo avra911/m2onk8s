@@ -9,8 +9,8 @@ FROM littlemanco/nginx:1.9.12-2
 MAINTAINER <support@littleman.co>
 
 # ADD Configuration
-ADD /etc/nginx/site.conf /etc/nginx/sites-enabled/site.conf
 ADD {{PATH_PACKAGES}}/lb-{{GIT_HASH}}.tar.gz /var/www/
+ADD /etc/nginx/site.conf /etc/nginx/sites-enabled/site.conf
 
 # Media dir will be mounted on Google Cloud Storage
 VOLUME ["/var/www/pub/media/", "/etc/ssl"]

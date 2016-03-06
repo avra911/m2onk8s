@@ -56,4 +56,4 @@ CMD php-fpm7.0
 #       a tarball that's been constructed (this might also solve some of the size issues
 #       with chown? 
 
-ADD build/artifacts/application-{{GIT_HASH}}.tar.gz /var/www/
+ADD {{PATH_PACKAGES}}/m2-{{GIT_HASH}}.tar.gz /var/www/

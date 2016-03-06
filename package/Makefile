@@ -45,6 +45,8 @@ help: ## Show this menu
 	@echo -e "\n"$(ANSI_WARNING)Warning:$(ANSI_OFF) "This is not yet production ready. It probably doesn't even work! When it hits a release, you're OK.\n"
 	@echo -e $(ANSI_TITLE)Requirements:$(ANSI_OFF)
 	@echo -e "    "$(ANSI_TITLE)Binaries:$(ANSI_OFF) bash docker gcloud git kubectl tar"\n"
+	@echo -e $(ANSI_TITLE)Application Structures:$(ANSI_OFF)" (See README.rst for definitions)"
+	@echo -e "    lb m2\n"
 	@echo -e $(ANSI_TITLE)Commands:$(ANSI_OFF)
 	@grep -E '^[a-zA-Z _-%]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "    \033[32m%-30s\033[0m %s\n", $$1, $$2}'
 
@@ -108,11 +110,11 @@ destroy-infrastructure: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZO
 # Artifact Generation
 # -------------------
 
-pack-application: ## Packs the application in a .tar.gz file for consumption by the Docker daemon
+pack-m2: ## Packs the application in a .tar.gz file for consumption by the Docker daemon
 	# Needs root to set user
-	# test ! -f $(PATH_APPLICATION/application-$(GIT_HASH).tar.gz && \
+	test ! -f $(PATH_PACKAGES)/m2-$(GIT_HASH).tar.gz && \
 	cd $(PATH_APPLICATION) && \
-	sudo tar -cvzf $(PATH_PACKAGES)/application-$(GIT_HASH).tar.gz ./* \
+	sudo tar -cvzf $(PATH_PACKAGES)/m2-$(GIT_HASH).tar.gz ./* \
 	    --owner=$(UID_WWW_DATA) \
 	    --group=$(GID_WWW_DATA)
 
@@ -148,14 +150,14 @@ container-%: guard-env-GOOGLE_CLOUD_PROJECT ## Builds & tags a given container
 # Artifact deployment
 # ---------------------
 
-push-c-magento: guard-env-GOOGLE_CLOUD_PROJECT ## Push the Magento container to the repo
-	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/php:${GIT_HASH}
+push-c-%: ## (% = Structure) guard-env-GOOGLE_CLOUD_PROJECT ## Push the Magento container to the repo
+	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/$*:${GIT_HASH}
 
-push-rc-magento: ## Pushes an update to the Magento RC to Kubernetes
-	sed "s/{{GIT_HASH}}/$(GIT_HASH)/" build/kubernetes/magento-rc.json | kubectl create -f -
+push-rc-%: ## (% = Structure) Pushes a replication controller update to Kubernetes
+	sed "s/{{GIT_HASH}}/$(GIT_HASH)/" build/kubernetes/$*-rc.json | kubectl create -f -
 
-push-rc-nginx: ## Pushes an update to NGINX to Kubernetes
-	sed "s/{{GIT_HASH}}/$(GIT_HASH)/" build/kubernetes/lb-rc.json | kubectl create -f -
+push-svc-%: ## (% = Structure) Pushes a service update to Kubernetes
+	kubectl create -f build/kubernetes/$*-svc.json
 
 push-secret-magento: ## Pushes an update to the Magento secret to Kubernetes
 	- kubectl delete secret magento-credentials
