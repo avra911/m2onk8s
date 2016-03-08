@@ -8,6 +8,8 @@ in a production environment.
 - Please, point out things that are wrong with it. I am building this as a reference
 - Also, this recently got a bunch more "serious". It's now working, give or take, and I'm improving the design. 
 
+Documentation: http://andrewhowdencom.github.io/m2onk8s/
+
 Project Goals
 -------------
 Magento 2 is a rewrite of the Magento e-commerce platform in PHP. Kubernetes is a container management solution created
