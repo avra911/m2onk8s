@@ -22,6 +22,10 @@ You rapidly resolve the issue by making PHP-FPM on the util server listen to a p
 
 Indirectly, it doesn't that much. It's a provisioner for a technology called "Containers" (or, more particularly, Docker). Containers are a kind of declarative runtime environment that you can ship and it should (from an application point of view) be indistinguishable from development to production. Instead of deploying an application, you deploy the *entire environment*, including (in this case) PHP configuration, webserver configuration, application at a given checkout and whatever else you can think of in an lovely immutable unit. 
 
+## Wait - How does help with the previous problem? 
+
+Well, it's pretty hard to screw up knowing about an NFS mount if it's staring at you in the declaration. Also, you can test the entire environment locally before deloying it. 
+
 ## Okay, that's containers. They sound pretty cool. Kubernetes?
 
 Something needs to run the containers. Further, these declarative environments need to know how to find each other. Lastly, secret information needs to be managed. Kubernetes handles all that. It provides lovely abstractions around what is a "deployable unit" (or "Pod"), how that pod should be deployed (or "Replication Controller") and where one pod can find another set of pods ("Service"). 
