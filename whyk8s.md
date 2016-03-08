@@ -4,8 +4,6 @@ title: Why Kubernetes
 permalink: /whyk8s/
 ---
 
-# Why Kubernetes 
-
 ## Let me tell you a scary, campfire story
 
 * Side note: This didn't happen to me, and it's loosely based on the truth.*
