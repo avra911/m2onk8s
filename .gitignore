@@ -5,7 +5,7 @@
 .env
 
 # TLS Keys
-*.pem
+.pem
 
 # Generated Files
 package/application/node_modules
