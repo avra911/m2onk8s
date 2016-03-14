@@ -153,17 +153,17 @@ container-%: guard-env-GOOGLE_CLOUD_PROJECT ## Builds & tags a given container
 push-c-%: ## (% = Structure) guard-env-GOOGLE_CLOUD_PROJECT ## Push the Magento container to the repo
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/$*:${GIT_HASH}
 
-push-rc-%: ## (% = Structure) Pushes a replication controller update to Kubernetes
+prov-rc-%: ## (% = Structure) Pushes a replication controller update to Kubernetes
 	sed "s/{{GIT_HASH}}/$(GIT_HASH)/" build/kubernetes/$*-rc.json | kubectl create -f -
 
-push-svc-%: ## (% = Structure) Pushes a service update to Kubernetes
+prov-svc-%: ## (% = Structure) Pushes a service update to Kubernetes
 	kubectl create -f build/kubernetes/$*-svc.json
 
-push-secret-magento: ## Pushes an update to the Magento secret to Kubernetes
+prov-secret-magento: ## Pushes an update to the Magento secret to Kubernetes
 	- kubectl delete secret magento-credentials
 	sed "s/{{BASE_64}}/$(SECRET_MAGENTO)/" build/kubernetes/magento-secret.json | kubectl create -f - 
 
-push-secret-lb: ## Pushes an update to the NGINX secret to Kubernetes
+prov-secret-lb: ## Pushes an update to the NGINX secret to Kubernetes
 	# Delete the previous resource if it exists
 	- kubectl delete secret ssl-certificates 
 	sed "s/{{CERT}}/$(SECRET_CERT)/" build/kubernetes/lb-secret.json | sed -e "s/{{FULL_CHAIN}}/$(SECRET_FULL_CHAIN)/" | sed -e "s/{{PRIVKEY}}/$(SECRET_PRIVKEY)/" | kubectl create -f - 
