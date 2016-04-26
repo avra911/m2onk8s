@@ -1,11 +1,5 @@
-# IDE Files
-.idea
-
-# ENV
-.env
-
-# TLS Keys
-.pem
+# Hide dotfiles
+.*
 
 # Generated Files
 package/application/node_modules
