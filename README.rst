@@ -17,11 +17,19 @@ Project Goals
 
 Magento 2 is a rewrite of the Magento e-commerce platform in PHP. Kubernetes is
 a container management solution created by Google (I think, at least) to
-orchestrate the deployment and life cycle of containerized applications. I
-initially intended to write a guide up about "how this works", but that proved
-too much of a burden. Instead, I just got it up and running. Check out the git
-history if you're looking for a bit of a "How To", otherwise, ask me questions
-and I'll write documentation by way of answer.
+orchestrate the deployment and life cycle of containerized applications. This is
+Magento 2, running on Kubernetes.
+
+Todo
+''''
+
+- Deploy via Travis
+- Run Redis in High Availability
+- Run MySQL + Slave
+- Allow easy local development
+- Set up Varnish
+- Setting up the required volumes for media, etc.
+- [Wishlist] Kill containers randomly, with increasing chance as they reach {n} life.
 
 ============= ============ ==============
 License       Code Style   Code Locale
@@ -29,16 +37,31 @@ License       Code Style   Code Locale
 MIT           PSR-2        en-AU [lang]_
 ============= ============ ==============
 
-Scope
------
+Similar Work
+------------
 
-The goal of this project is to see what infrastructure is required to get
-Magento 2 to run efficiently on Kubernetes. For this, we'll be working on:
+None, so far as I know.
 
-  - [Todo] Set up Varnish
-  - [Todo] Setting up the required volumes for media, etc.
-  - [Todo] Exfiling logs via the Kubernetes log handler for PHP, NGINX and Magento
-  - [Wishlist] Kill containers randomly, with increasing chance as they reach {n} life.
+Justification
+-------------
+
+Demonstrate a POC of Magento on Kubernetes
+
+Alerting Policies
+-----------------
+
+Todo: Implement
+
+========================== ====================================================
+Policy                     Description
+-------------------------- ----------------------------------------------------
+GET / (https) not 200      Check whether the HTTPS homepage is working
+GET / (http) not 302       Check whether the site is redirecting from HTTP
+TCP Open for Redis         Check whether the Redis service is operating correctly
+Get / (http) 200 Varnish   Check whether the Varnish service is OK
+TCP Open for MySQL         Check whether MySQL is OK
+Query for MySQL            Check whether we can query in MySQL
+========================== ====================================================
 
 Naming Standards
 ----------------
@@ -81,6 +104,7 @@ most recent versions of all dependencies.
 
 Usage
 -----
+
 .. Code::bash
 
     $ make
@@ -92,9 +116,11 @@ not to answer questions directly.
 
 Contributing
 ------------
+
 Contributions are always welcome! Feel free to open an issue for discussion
 
 References
 -----------
+
 .. [lang] Lingoes.net,. (2015). Language Code Table. Retrieved 4 June 2015,
 from http://www.lingoes.net/en/translator/langcode.htm
