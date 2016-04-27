@@ -19,6 +19,7 @@ Items marked "[done]" are done.
 
 Health checking and PHP
 '''''''''''''''''''''''
+
 Kubernetes supports arbitrary checking of the various pods to decide if they're
 "healthy" or not. I haven't yet decided whether it's a good idea to couple
 NGINX and PHP (at the moment I'm feeling like yes, it's a good idea, but it
@@ -28,3 +29,10 @@ If NGINX is in the stack, heatlh check the PHP-FPM status page, and kill
 the entire pod if that fails. If not, open a TCP socket to the PHP-FPM container.
 
 See: liveness probes
+
+Monitoring
+''''''''''
+
+Monitoring should probably be abstracted away behind an endpoint. The
+justification is we want to be able to deploy this opaquely, to a
+random cluster, and not rely on other services running in this cluster.
