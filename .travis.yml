@@ -1,0 +1,54 @@
+branches:
+  only:
+  - master
+
+addons:
+  apt:
+    packages:
+    - python-docutils
+    - git
+
+sudo: required
+
+services:
+- docker
+
+env:
+- CLOUDSDK_PYTHON_SITEPACKAGES=1
+  GIT_SSH_COMMAND="ssh -i .privkey"
+
+before_install:
+  # General bin
+  # Path is ordered this way so we found our custom gcloud prior to travis's one.
+  - "PATH=$(pwd)/bin:${PATH}"
+
+  # Google Cloud Path
+  - "PATH=$(pwd)/google-cloud-sdk/bin:${PATH}"
+
+  # CI Scripts
+  - "PATH=$(pwd)/build/scripts/CI:${PATH}"
+
+  # Secret dismantlement
+  - "unpack-secrets.sh"
+
+install:
+  - "install-google-cloud.sh"
+
+  # Rebuild path
+  - "hash -r"
+
+before_script:
+  - "auth-gcloud.sh"
+  - "auth-kube.sh"
+  - "auth-docker.sh"
+
+script:
+  #- kubectl apply -f build/kubernetes
+
+after_success:
+  #"./build/scripts/CI/success.sh"
+
+after_failure:
+  #"./build/scripts/CI/failure.sh"
+
+after_script:

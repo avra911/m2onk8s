@@ -1,5 +1,9 @@
 # Hide dotfiles
 .*
 
+# Allow specific dotfiles
+!\.travis.yml
+!\.secrets.tar.gz.enc
+
 # Generated Files
 package/application/node_modules

@@ -40,7 +40,7 @@ SECRET_PRIVKEY    := $(shell base64 -w 0 build/secrets/privkey.pem)
 # Help
 # ----
 
-help: ## Show this menu 
+help: ## Show this menu
 	@echo -e $(ANSI_TITLE)m2onk8s$(ANSI_OFF)$(ANSI_SUBTITLE) - An experiment running Magento 2 on Kubernetes \(with Google Cloud\)$(ANSI_OFF)
 	@echo -e "\n"$(ANSI_WARNING)Warning:$(ANSI_OFF) "This is not yet production ready. It probably doesn't even work! When it hits a release, you're OK.\n"
 	@echo -e $(ANSI_TITLE)Requirements:$(ANSI_OFF)
@@ -76,37 +76,6 @@ guard-changes:
 	    exit 1; \
 	fi
 
-# Infrastructure
-# --------------
-
-## Creates the Kubernetes cluster necessary to run m2onk8s
-provision-kubernetes-cluster: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud ## Creates a Kubernetes cluster on Google Cloud
-	gcloud container clusters create \
-	    --project=$(GOOGLE_CLOUD_PROJECT) \
-	    --enable-cloud-logging \
-	    --machine-type=n1-standard-1 \
-	    --num-nodes=2 \
-	    --quiet \
-	    --wait \
-	    --zone=$(GOOGLE_CLOUD_ZONE) \
-	    m2onk8s
-
-provision-sql: guard-env-GOOGLE_CLOUD_ZONE ## Create an SQL instance on Google Cloud
-	gcloud sql instances create \
-	    --assign-ip \
-	    --backup \
-	    --require-ssl \
-	    m2onk8s
-
-provision-everything: create-instances create-sql ## Create all the necessary resources for Google Cloud
-
-destroy-infrastructure: guard-env-GOOGLE_CLOUD_PROJECT guard-env-GOOGLE_CLOUD_ZONE guard-cmd-gcloud ## [BROKEN] Deletes the infrastructure created by other provisioning tasks
-	gcloud container clusters delete \
-	    --project=$(GOOGLE_CLOUD_PROJECT) \
-	    --quiet \
-	    --wait \
-	    m2onk8s
-
 # Artifact Generation
 # -------------------
 
@@ -125,23 +94,23 @@ pack-lb: ## Packs the static assets in a .tar.gz file for consumption by the Doc
 	sudo tar -cvzf $(PATH_PACKAGES)/lb-$(GIT_HASH).tar.gz pub \
 	    --owner=1000 \
 	    --group=1000
- 
+
 # Container Generation
 # --------------------
 
 container-%: guard-env-GOOGLE_CLOUD_PROJECT ## Builds & tags a given container
 	- make pack-$*
-	
+
 	# Move the dockerfile to the project root
-	cat build/docker/$*/Dockerfile > Dockerfile 
-	
+	cat build/docker/$*/Dockerfile > Dockerfile
+
 	# Process the dockerfile
-	sed -i "s/{{GIT_HASH}}/$(GIT_HASH)/" Dockerfile 
-	
+	sed -i "s/{{GIT_HASH}}/$(GIT_HASH)/" Dockerfile
+
 	# Todo: The PATH_PACKAGES variable doesn't play nice with the `sed` command. Need to figure out how to get those two together.
 	sed -i "s/{{PATH_PACKAGES}}/\/build\/packages/" Dockerfile
 
-	docker build -t ${CONTAINER_NS}/$*:${GIT_HASH} . 
+	docker build -t ${CONTAINER_NS}/$*:${GIT_HASH} .
 
 	rm Dockerfile
 
@@ -153,34 +122,18 @@ container-%: guard-env-GOOGLE_CLOUD_PROJECT ## Builds & tags a given container
 push-c-%: ## (% = Structure) guard-env-GOOGLE_CLOUD_PROJECT ## Push the Magento container to the repo
 	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/$*:${GIT_HASH}
 
-prov-rc-%: ## (% = Structure) Pushes a replication controller update to Kubernetes
-	sed "s/{{GIT_HASH}}/$(GIT_HASH)/" build/kubernetes/$*-rc.json | kubectl create -f -
-
-prov-svc-%: ## (% = Structure) Pushes a service update to Kubernetes
-	kubectl create -f build/kubernetes/$*-svc.json
-
 prov-secret-magento: ## Pushes an update to the Magento secret to Kubernetes
 	- kubectl delete secret magento-credentials
-	sed "s/{{BASE_64}}/$(SECRET_MAGENTO)/" build/kubernetes/magento-secret.json | kubectl create -f - 
+	sed "s/{{BASE_64}}/$(SECRET_MAGENTO)/" build/kubernetes/magento-secret.json | kubectl create -f -
 
 prov-secret-lb: ## Pushes an update to the NGINX secret to Kubernetes
 	# Delete the previous resource if it exists
-	- kubectl delete secret ssl-certificates 
-	sed "s/{{CERT}}/$(SECRET_CERT)/" build/kubernetes/lb-secret.json | sed -e "s/{{FULL_CHAIN}}/$(SECRET_FULL_CHAIN)/" | sed -e "s/{{PRIVKEY}}/$(SECRET_PRIVKEY)/" | kubectl create -f - 
-
-# Development Tasks
-# -----------------
-
-mock-runtime-env: ## Creates the necessary containers required for local development
-
-	# This should only be used in dev. If this Makefile hits prod, I'll be super unhappy with you (not really. But it's a bad idea)
-	# Also, yes there are passwords below, yes I know it's never a good idea, but rest assured, they've never been used before or will be again.
-	docker run --name=mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d -p 3306:3306  mysql/mysql-server:5.7 
-	php application/bin/magento setup:install --db-host=127.0.0.1 --db-name=magento2 --db-user=root --db-password=my-secret-pw --admin-user="User" --admin-firstname=User --admin-lastname=atexampledotcom --admin-email=user@example.com --admin-password=10spaceship
+	- kubectl delete secret ssl-certificates
+	sed "s/{{CERT}}/$(SECRET_CERT)/" build/kubernetes/lb-secret.json | sed -e "s/{{FULL_CHAIN}}/$(SECRET_FULL_CHAIN)/" | sed -e "s/{{PRIVKEY}}/$(SECRET_PRIVKEY)/" | kubectl create -f -
 
 clean: clean-packages clean-docker clean-application-generation clean-application-packages ## Delete everything so you can start again
 
-clean-application-packages: ## Delete all of the vendor depependences 
+clean-application-packages: ## Delete all of the vendor depependences
 	# Delete application build
 	rm -rf application/vendor
 	rm -rf application/node_modules
@@ -208,7 +161,7 @@ compile-application: guard-changes guard-cmd-composer ## Installs all of the dep
 	# The code generation bit
 	rm -rf application/var/di
 	php application/bin/magento setup:di:compile
-	
+
 	# Interestingly, this bit doesn't work yet. Nor do I know what it does.
 	# php application/bin/magento setup:di:compile-multi-tenant
 
@@ -219,7 +172,5 @@ compile-application: guard-changes guard-cmd-composer ## Installs all of the dep
 	# Edit: It doesn't work. Needs arguments. But arguments about what!
 	# php application/bin/magento setup:performance:generate-fixtures
 
-	# The static content bit? I don't know. 
+	# The static content bit? I don't know.
 	php application/bin/magento setup:static-content:deploy
-
-
