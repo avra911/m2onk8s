@@ -15,6 +15,7 @@ spec:
 apiVersion: "v1"
 metadata:
   name: "redis-sentinel-data"
+  namespace: "m2onk8s-littleman-co"
 data:
   # In theory, it shouldn't really matter which redis note is used as the first
   # master. Once sentinel hits a node (any node, randomly) it will register
