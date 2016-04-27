@@ -2,7 +2,7 @@
 Design
 ======
 
-In this document, you'll find architectural notes as I feel I need them. 
+In this document, you'll find architectural notes as I feel I need them.
 
 Problems that need solving
 --------------------------
@@ -11,10 +11,20 @@ Problems that need solving
 
 Todo list:
 ----------
-Items marked "[done]" are done. 
+Items marked "[done]" are done.
 
 - Get it running
 - Get MySQL Running
-- Get secrets handled correctly (vault?)
-- Get Magento requesting secrets from vault
-- Get 
+- Get health checking working
+
+Health checking and PHP
+'''''''''''''''''''''''
+Kubernetes supports arbitrary checking of the various pods to decide if they're
+"healthy" or not. I haven't yet decided whether it's a good idea to couple
+NGINX and PHP (at the moment I'm feeling like yes, it's a good idea, but it
+varies a lot)
+
+If NGINX is in the stack, heatlh check the PHP-FPM status page, and kill
+the entire pod if that fails. If not, open a TCP socket to the PHP-FPM container.
+
+See: liveness probes
