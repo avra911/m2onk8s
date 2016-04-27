@@ -43,7 +43,7 @@ before_script:
   - "auth-docker.sh"
 
 script:
-  #- kubectl apply -f build/kubernetes
+  - kubectl apply -f build/kubernetes
 
 after_success:
   #"./build/scripts/CI/success.sh"

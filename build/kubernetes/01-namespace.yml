@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+    # The namespace does not have to end in -littleman-co. However, the standard
+    # I use for other projects is the FQDN with hyphens, and I'm pretty much
+    # a slave to a standard once its set, unless I can think of a super good
+    # reason not to use it.
+    name: m2onk8s-littleman-co
