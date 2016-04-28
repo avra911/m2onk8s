@@ -33,7 +33,7 @@ apiVersion: "extensions/v1beta1"
 kind: "Deployment"
 metadata:
   labels:
-    appication: "redis"
+    appication: "redis-sentinel"
   name: "redis-sentinel-deployment"
   namespace: "m2onk8s-littleman-co"
 spec:

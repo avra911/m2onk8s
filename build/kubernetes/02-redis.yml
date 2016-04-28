@@ -20,9 +20,6 @@ metadata:
   name: "redis-deployment"
   namespace: "m2onk8s-littleman-co"
 spec:
-  # There must be a majority of sentinels to elect a master. It's either one
-  # or three, so we're using 3 here (for H/A)
-  # See http://redis.io/topics/sentinel
   replicas: 3
   selector:
     matchLabels:
