@@ -12,3 +12,39 @@ spec:
   sessionAffinity: "None"
   type: "ClusterIP"
 ---
+apiVersion: "extensions/v1beta1"
+kind: "Deployment"
+metadata:
+  labels:
+    appication: "redis"
+  name: "redis-deployment"
+  namespace: "m2onk8s-littleman-co"
+spec:
+  # There must be a majority of sentinels to elect a master. It's either one
+  # or three, so we're using 3 here (for H/A)
+  # See http://redis.io/topics/sentinel
+  replicas: 3
+  selector:
+    matchLabels:
+      # Naming standard defined in https://docs.littleman.co/Kubernetes/
+      application: "redis"
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: "RollingUpdate"
+  template:
+    metadata:
+      labels:
+        application: "redis"
+    spec:
+      containers:
+      - image: "redis:3.0.7-alpine"
+        imagePullPolicy: "IfNotPresent"
+        name: "redis"
+        ports:
+        - containerPort: 6379
+          protocol: "TCP"
+        resources: {}
+        terminationMessagePath: "/dev/termination-log"
+      restartPolicy: "Always"

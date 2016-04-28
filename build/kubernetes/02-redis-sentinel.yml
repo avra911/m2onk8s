@@ -34,7 +34,7 @@ kind: "Deployment"
 metadata:
   labels:
     appication: "redis"
-  name: "redis-deployment"
+  name: "redis-sentinel-deployment"
   namespace: "m2onk8s-littleman-co"
 spec:
   # There must be a majority of sentinels to elect a master. It's either one
