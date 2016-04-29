@@ -20,7 +20,7 @@ metadata:
   name: "redis-deployment"
   namespace: "m2onk8s-littleman-co"
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       # Naming standard defined in https://docs.littleman.co/Kubernetes/
