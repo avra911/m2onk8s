@@ -32,7 +32,6 @@ PATH_BUILD_CONFIGURATION := $(shell pwd)/build
 PATH_ARTIFACTS           := $(PATH_BUILD_CONFIGURATION)/artifacts
 PATH_PACKAGES            := $(PATH_BUILD_CONFIGURATION)/packages
 
-SECRET_MAGENTO    := $(shell base64 -w 0 build/secrets/.env)
 SECRET_CERT       := $(shell base64 -w 0 build/secrets/cert.pem)
 SECRET_FULL_CHAIN := $(shell base64 -w 0 build/secrets/fullchain.pem)
 SECRET_PRIVKEY    := $(shell base64 -w 0 build/secrets/privkey.pem)
@@ -50,36 +49,10 @@ help: ## Show this menu
 	@echo -e $(ANSI_TITLE)Commands:$(ANSI_OFF)
 	@grep -E '^[a-zA-Z _-%]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "    \033[32m%-30s\033[0m %s\n", $$1, $$2}'
 
-# Guards
-# ------
-
-# General method that checks for required environment variables. See http://stackoverflow.com/questions/4728810/makefile-variable-as-prerequisite
-guard-env-%:
-	@ if [ "${${*}}" == "" ]; then \
-	    echo "---- ERROR ----"; \
-	    echo "Environment variable $* not set"; \
-	    echo "---------------"; \
-	    exit 1; \
-	fi
-
-guard-cmd-%:
-	$* -v > /dev/null 2>&1 ; \
-	if [ ! $$? -eq 0 ]; then \
-	    echo "Please verify the $* command line tool is installed and in your $PATH"; \
-	fi
-
-guard-changes:
-	if [[ `git diff --shortstat 2> /dev/null | tail -n1` != "" ]]; then \
-	    echo "---- ERROR ----"; \
-            echo "There are unstaged changes present. Build unreliable"; \
-	    echo "---------------" \
-	    exit 1; \
-	fi
-
 # Artifact Generation
 # -------------------
 
-pack-m2: ## Packs the application in a .tar.gz file for consumption by the Docker daemon
+pack-application: ## Packs the application in a .tar.gz file for consumption by the Docker daemon
 	# Needs root to set user
 	test ! -f $(PATH_PACKAGES)/m2-$(GIT_HASH).tar.gz && \
 	cd $(PATH_APPLICATION) && \
@@ -87,40 +60,8 @@ pack-m2: ## Packs the application in a .tar.gz file for consumption by the Docke
 	    --owner=$(UID_WWW_DATA) \
 	    --group=$(GID_WWW_DATA)
 
-pack-lb: ## Packs the static assets in a .tar.gz file for consumption by the Docker daemon
-	# Needs root to set user
-	test ! -f $(PATH_PACKAGES)/lb-$(GIT_HASH).tar.gz && \
-	cd $(PATH_APPLICATION) && \
-	sudo tar -cvzf $(PATH_PACKAGES)/lb-$(GIT_HASH).tar.gz pub \
-	    --owner=1000 \
-	    --group=1000
-
-# Container Generation
-# --------------------
-
-container-%: guard-env-GOOGLE_CLOUD_PROJECT ## Builds & tags a given container
-	- make pack-$*
-
-	# Move the dockerfile to the project root
-	cat build/docker/$*/Dockerfile > Dockerfile
-
-	# Process the dockerfile
-	sed -i "s/{{GIT_HASH}}/$(GIT_HASH)/" Dockerfile
-
-	# Todo: The PATH_PACKAGES variable doesn't play nice with the `sed` command. Need to figure out how to get those two together.
-	sed -i "s/{{PATH_PACKAGES}}/\/build\/packages/" Dockerfile
-
-	docker build -t ${CONTAINER_NS}/$*:${GIT_HASH} .
-
-	rm Dockerfile
-
-	docker tag ${CONTAINER_NS}/$*:${GIT_HASH} gcr.io/$(GOOGLE_CLOUD_PROJECT)/$*:${GIT_HASH}
-
 # Artifact deployment
 # ---------------------
-
-push-c-%: ## (% = Structure) guard-env-GOOGLE_CLOUD_PROJECT ## Push the Magento container to the repo
-	gcloud docker push gcr.io/$(GOOGLE_CLOUD_PROJECT)/$*:${GIT_HASH}
 
 prov-secret-magento: ## Pushes an update to the Magento secret to Kubernetes
 	- kubectl delete secret magento-credentials
@@ -152,7 +93,7 @@ clean-docker: ## Delete the generated Dockerfile
 # -----------------------
 
 # Todo: merge with build-application-php, swap with "compile-application" - There's no web or other.
-compile-application: guard-changes guard-cmd-composer ## Installs all of the depenencies reqired with the various package managers
+compile-application: ## Installs all of the depenencies reqired with the various package managers
 	# Implied that grunt exists. Jerk grunt returns a "99" status code with grunt -v.
 	cd application && composer install --ignore-platform-reqs --optimize-autoloader --no-dev
 	cd application && npm install
