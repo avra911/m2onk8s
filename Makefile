@@ -96,7 +96,9 @@ compile-application: ## Installs all of the depenencies reqired with the various
 	# Implied that grunt exists. Jerk grunt returns a "99" status code with grunt -v.
 	cd application && composer install --ignore-platform-reqs --optimize-autoloader --no-dev
 	cd application && npm install
-	cd application && grunt install
+	# The grunt command is wrong, and has been temporarily removed from the build
+	# pipeline
+	# cd application && grunt install
 
 	# The code generation bit
 	- rm -rf application/var/di
