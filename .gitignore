@@ -5,5 +5,8 @@
 !\.travis.yml
 !\.secrets.tar.gz.enc
 
+# Hide secrets with specific names
+application/auth.json 
+
 # Generated Files
 package/application/node_modules
