@@ -1,7 +1,0 @@
-# You'll need to rename this to ".env", and supply it to Kubernetes as a secret
-ADMIN_PANEL_PATH=admin
-CRYPT_KEY=abcdefghjijlmnop
-DATABASE_HOST=127.0.0.1
-DATABASE_NAME=m2onk8s
-DATABASE_USERNAME=m2onk8s
-DATABASE_PASSWORD=imactuallyaninja
