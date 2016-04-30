@@ -105,14 +105,9 @@ most recent versions of all dependencies.
 Usage
 -----
 
-.. Code::bash
-
-    $ make
-
-That should give you a list of the current things the project can do. If you're
-looking for additional help for something in particular I'll comment that
-section of the build more heavily (or, at worst, write documentation). I try
-not to answer questions directly.
+This is deployed entirely by Travis. For developing things, I'll eventually
+host a cluster locally, but for the time being I'm just pushing changes out and
+if it breaks, it breaks.
 
 Contributing
 ------------

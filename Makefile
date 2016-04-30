@@ -92,7 +92,6 @@ clean-docker: ## Delete the generated Dockerfile
 # Application Compilation
 # -----------------------
 
-# Todo: merge with build-application-php, swap with "compile-application" - There's no web or other.
 compile-application: ## Installs all of the depenencies reqired with the various package managers
 	# Implied that grunt exists. Jerk grunt returns a "99" status code with grunt -v.
 	cd application && composer install --ignore-platform-reqs --optimize-autoloader --no-dev
@@ -100,7 +99,7 @@ compile-application: ## Installs all of the depenencies reqired with the various
 	cd application && grunt install
 
 	# The code generation bit
-	rm -rf application/var/di
+	- rm -rf application/var/di
 	php application/bin/magento setup:di:compile
 
 	# Interestingly, this bit doesn't work yet. Nor do I know what it does.

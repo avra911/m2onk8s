@@ -5,18 +5,25 @@ branches:
 addons:
   apt:
     packages:
-    - python-docutils
-    - git
+    - "python-docutils"
+    - "git"
 
-sudo: required
+sudo: "required"
 
 services:
-- docker
+- "docker"
+
+language: "php"
+php:
+  - "7.0"
+node_js:
+  - "5.1"
 
 env:
 - CLOUDSDK_PYTHON_SITEPACKAGES=1
   GIT_SSH_COMMAND="ssh -i .privkey"
 
+# Used for modifying the Travis environment so it is suitable for CI + CD
 before_install:
   # General bin
   # Path is ordered this way so we found our custom gcloud prior to travis's one.
@@ -31,24 +38,35 @@ before_install:
   # Secret dismantlement
   - "unpack-secrets.sh"
 
-install:
+  # Install build dependencies
   - "install-google-cloud.sh"
+  - "sudo npm install -g grunt"
 
   # Rebuild path
   - "hash -r"
 
+# Used for installing application specific dependencies
+install:
+  - "build.sh"
+
+# Used with the presumption all dependices could be downloaded fine, for testing
+# and authorisation of various services prior to deployment
 before_script:
   - "auth-gcloud.sh"
   - "auth-kube.sh"
   - "auth-docker.sh"
 
+# Used for deployment
 script:
-  - kubectl apply -f build/kubernetes
+  - "kubectl apply -f build/kubernetes"
 
+# Used for build notification
 after_success:
   #"./build/scripts/CI/success.sh"
 
+# Used for build notification
 after_failure:
   #"./build/scripts/CI/failure.sh"
 
+# Currently unused
 after_script:
