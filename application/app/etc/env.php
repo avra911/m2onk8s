@@ -2,7 +2,7 @@
 return array(
     'backend' =>
         array(
-            'frontName' => $_ENV['ADMIN_PANEL_PATH'],
+            'frontName' => getenv('ADMIN_PANEL_PATH'),
         ),
     'install' =>
         array(
@@ -10,12 +10,12 @@ return array(
         ),
     'crypt' =>
         array(
-            'key' => $_ENV['CRYPT_KEY'],
+            'key' => getenv('CRYPT_KEY'),
         ),
     'session' =>
         array(
-            'save' => $_ENV['SESSION_SAVE_TYPE'],
-            'save_path' => $_ENV['SESSION_SAVE_PATH']
+            'save' => getenv('SESSION_SAVE_TYPE'),
+            'save_path' => getenv('SESSION_SAVE_PATH')
         ),
     'db' =>
         array(
@@ -24,10 +24,10 @@ return array(
                 array(
                     'default' =>
                         array(
-                            'host' => $_ENV['DATABASE_HOST'],
-                            'dbname' => $_ENV['DATABASE_NAME'],
-                            'username' => $_ENV['DATABASE_USERNAME'],
-                            'password' => $_ENV['DATABASE_PASSWORD'],
+                            'host' => getenv('DATABASE_HOST'),
+                            'dbname' => getenv('DATABASE_NAME'),
+                            'username' => getenv('DATABASE_USERNAME'),
+                            'password' => getenv('DATABASE_PASSWORD'),
                         ),
                 ),
         ),
@@ -61,13 +61,13 @@ return array(
             'default' => [
                 'backend' => 'Cm_Cache_Backend_Redis',
                 'backend_options' => [
-                    'server' => $_ENV['CACHE_SERVER'],
-                    'port' => $_ENV['CACHE_PORT'],
+                    'server' => getenv('CACHE_SERVER'),
+                    'port' => getenv('CACHE_PORT'),
                     'persistent' => '',
                     'database' => '1',
                     'force_standalone' => '0',
-                    'connect_retries' => $_ENV['CACHE_CONNECT_RETRIES'],
-                    'read_timeout' => $_ENV['CACHE_READ_TIMEOUT'],
+                    'connect_retries' => getenv('CACHE_CONNECT_RETRIES'),
+                    'read_timeout' => getenv('CACHE_READ_TIMEOUT'),
                     'automatic_cleaning_factor' => '0',
                     'compress_data' => '1',
                     'compress_tags' => '1',
@@ -77,13 +77,13 @@ return array(
                 'page_cache' => [
                     'backend' => 'Cm_Cache_Backend_Redis',
                     'backend_options' => [
-                        'server' => $_ENV['CACHE_SERVER'],
-                        'port' => $_ENV['CACHE_PORT'],
+                        'server' => getenv('CACHE_SERVER'),
+                        'port' => getenv('CACHE_PORT'),
                         'persistent' => '',
                         'database' => '2',
                         'force_standalone' => '0',
-                        'connect_retries' => $_ENV['CACHE_CONNECT_RETRIES'],
-                        'read_timeout' => $_ENV['CACHE_READ_TIMEOUT'],
+                        'connect_retries' => getenv('CACHE_CONNECT_RETRIES'),
+                        'read_timeout' => getenv('CACHE_READ_TIMEOUT'),
                         'automatic_cleaning_factor' => '0',
                         'compress_data' => '1',
                         'compress_tags' => '1',
