@@ -1,3 +1,3 @@
 #!/bin/bash
 
-make build-application-php
+make compile-application
