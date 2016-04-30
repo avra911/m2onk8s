@@ -16,8 +16,6 @@ services:
 language: "php"
 php:
   - "7.0"
-node_js:
-  - "5.1"
 
 env:
 - CLOUDSDK_PYTHON_SITEPACKAGES=1
@@ -40,6 +38,8 @@ before_install:
 
   # Install build dependencies
   - "install-google-cloud.sh"
+  - "curl -sL https://deb.nodesource.com/setup_5.x"
+  - "sudo apt-get install -y nodejs"
   - "sudo npm install -g grunt"
 
   # Rebuild path
