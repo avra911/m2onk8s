@@ -2,6 +2,13 @@
 Project Outline
 ===============
 
+*** BIGGER WARNING *** - This project is stalled. 
+
+I built this when I knew waaay less about Kubernetes. 
+I don't think it'd be difficult to get m2onk8s up, now -- I'll likely to it as 
+part of the new m2pwa (Magento progressive web app). If I do that, I'll 
+hopefully write a blog about it, and take this down.
+
 *** WARNING *** - Though this is intended to be "production worthy" as soon as
 possible, it's never going to be tested in a production environment.
 
